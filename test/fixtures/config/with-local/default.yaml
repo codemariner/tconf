@@ -1,0 +1,7 @@
+database:
+  host: 'database.server'
+sites:
+  US:
+    url: 'https://site.us'
+  CA:
+    url: 'https://site.ca'

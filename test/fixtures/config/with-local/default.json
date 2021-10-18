@@ -1,0 +1,14 @@
+{
+	"database": {
+		"host": "database.server.json"
+	},
+	"sites": {
+		"US": {
+			"url": "https://site.us.json"
+		},
+		"CA": {
+			"url": "https://site.ca.json"
+		}
+	},
+	"rules": ["default"]
+}
