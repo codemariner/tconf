@@ -136,6 +136,9 @@ server.start(config.host, config.port ?? 3000);
 
 ```
 
+### loadSync(opts:GetConfigOpts<T>)
+Synchronous version of the load function.
+
 ### Options
 
 #### `path` (Required)
