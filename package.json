@@ -1,5 +1,5 @@
 {
-	"name": "type-config",
+	"name": "tconf",
 	"version": "1.0.0",
 	"description": "Heirarchical configuration with environment variable coercion and type validation.",
 	"main": "dist/index.js",

@@ -1,4 +1,4 @@
-# type-config
+# tconf
 
 Provides type-checked heirarchical configuration support with value coercion of enviornment variables.
 
@@ -90,7 +90,7 @@ The resulting configuration object loaded while `NODE_ENV=production`:
 ## Install
 
 ```sh
-$ npm install type-config
+$ npm install tconf
 ```
 
 ## Dependencies
@@ -113,7 +113,7 @@ Default exported function. Load configurations based on provided options.
 import path from 'path';
 
 import { Number, Record, String } from 'runtypes';
-import loadConfig from 'type-config';
+import loadConfig from 'tconf';
 
 const schema = Record({
     host: String,
@@ -218,7 +218,7 @@ CONFIG_database__options__maxPoolSize=10
 
 Defaults to `'overwrite'`.  Possible values `'combine'` or `'overwrite'`.
 
-Internally, type-config will deeply merge objects.  By default, array properites are overwritten.
+Internally, tconf will deeply merge objects.  By default, array properites are overwritten.
 
 ```typescript
 const a = { obj: [{ name: 'joe' }, { name: 'john' }, 2] };
@@ -282,7 +282,7 @@ The above will result in an untyped config object that merges all configurations
 This library uses `debug`. To print debug logging:
 
 ```shell
-$ DEBUG=type-config* node ./run.js
+$ DEBUG=tconf* node ./run.js
 ```
 
 ## TODO

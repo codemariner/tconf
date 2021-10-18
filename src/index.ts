@@ -14,7 +14,7 @@ import { deepMerge, MergeOpts } from './util';
 export const DEFAULT_PREFIX = 'CONFIG_';
 export const DEFAULT_SEPARATOR = '__';
 
-const log = debug('type-config');
+const log = debug('tconf');
 const logEnv = log.extend('env');
 
 export type DeepPartial<T> = {
