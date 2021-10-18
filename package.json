@@ -2,7 +2,13 @@
 	"name": "tconf",
 	"version": "1.0.0",
 	"description": "Heirarchical configuration with environment variable coercion and type validation.",
+	"author": "Scott Sayles",
 	"main": "dist/index.js",
+	"types": "dist/index.d.ts",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/codemariner/tconf"
+	},
 	"engines": {
 		"node": ">=12.0.0"
 	},
