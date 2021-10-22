@@ -1,0 +1,7 @@
+database:
+  host: 'database.server'
+sites:
+  US:
+    url: ${URL_US}
+  CA:
+    url: ${URL_CA}

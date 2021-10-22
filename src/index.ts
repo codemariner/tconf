@@ -3,7 +3,6 @@
 import fs from 'fs';
 import path from 'path';
 
-import Bluebird from 'bluebird';
 import yaml from 'js-yaml';
 import { Literal, Record, Runtype, Static } from 'runtypes';
 import { LiteralBase } from 'runtypes/lib/types/literal';
@@ -13,6 +12,7 @@ import { deepMerge, MergeOpts } from './util';
 
 export const DEFAULT_PREFIX = 'CONFIG_';
 export const DEFAULT_SEPARATOR = '__';
+const ENV_TEMPLATE_VALUE_REGEX = /^\$\{(.*)\}$/;
 
 const log = debug('tconf');
 const logEnv = log.extend('env');
@@ -255,32 +255,22 @@ function readEnvConfig(opts: GetConfigOpts<Runtype | unknown>, schema?: Runtype)
 	);
 }
 
-async function readConfig(
-	filePath: string,
-	parser: FileParser,
-	sync?: boolean
-): typeof sync extends true ? any : Promise<any> {
-	if (!fs.existsSync(filePath)) {
-		log(`config file ${filePath} not found`);
-		return {};
-	}
-	log('parsing config', filePath);
-	let data;
-	try {
-		const contents = await fs.promises.readFile(filePath, { encoding: 'utf-8' });
-		data = parser(contents);
-	} catch (e) {
-		log(`error parsing configuration file ${filePath}`, e);
-		throw new ConfigurationError(
-			`Error while parsing configuration file ${filePath}: ${e.message}`
-		);
-	}
-	if (typeof data !== 'object' || data === null || Array.isArray(data)) {
-		throw new ConfigurationError(
-			`Invalid configuration from ${filePath}. Configuration should be an object.`
-		);
-	}
-	return data;
+function interpolateEnv(config: any) {
+	Object.entries(config).forEach(([key, value]) => {
+		if (typeof value === 'string') {
+			const match = value.trim().match(ENV_TEMPLATE_VALUE_REGEX);
+			if (match) {
+				if (Object.getOwnPropertyDescriptor(process.env, match[1])) {
+					config[key] = process.env[match[1]];
+				} else {
+					delete config[key];
+				}
+			}
+		} else if (value instanceof Object) {
+			interpolateEnv(value);
+		}
+	});
+	return config;
 }
 
 function readConfigSync(filePath: string, parser: FileParser): any {
@@ -296,7 +286,7 @@ function readConfigSync(filePath: string, parser: FileParser): any {
 	} catch (e) {
 		log(`error parsing configuration file ${filePath}`, e);
 		throw new ConfigurationError(
-			`Error while parsing configuration file ${filePath}: ${e.message}`
+			`Error while parsing configuration file ${filePath}: ${(e as any).message}`
 		);
 	}
 	if (typeof data !== 'object' || data === null || Array.isArray(data)) {
@@ -358,32 +348,7 @@ function getInfo<T extends Runtype | unknown>(opts: GetConfigOpts<T>) {
 	};
 }
 
-export default async function load<T extends Runtype | unknown>(
-	opts: GetConfigOpts<T>
-): Promise<T extends Runtype ? Static<T> : any> {
-	const { baseDirs, baseNames, defaults, fileExt, parser, schema } = getInfo(opts);
-
-	const configs = await Bluebird.reduce(
-		baseNames,
-		async (accum: any[], sourceName) => {
-			if (sourceName === 'ENV') {
-				accum.push(readEnvConfig(opts, schema));
-				return accum;
-			}
-
-			await Bluebird.each(baseDirs, async (dir) =>
-				accum.push(await readConfig(path.join(dir, `${sourceName}.${fileExt}`), parser))
-			);
-
-			return accum;
-		},
-		[]
-	);
-
-	return mergeAndCheck(defaults, configs, schema, opts.mergeOpts);
-}
-
-export function loadSync<T extends Runtype | unknown>(
+export default function load<T extends Runtype | unknown>(
 	opts: GetConfigOpts<T>
 ): T extends Runtype ? Static<T> : any {
 	const { baseDirs, baseNames, defaults, fileExt, parser, schema } = getInfo(opts);
@@ -395,7 +360,8 @@ export function loadSync<T extends Runtype | unknown>(
 		}
 
 		baseDirs.forEach((dir) => {
-			accum.push(readConfigSync(path.join(dir, `${sourceName}.${fileExt}`), parser));
+			const rawConfig = readConfigSync(path.join(dir, `${sourceName}.${fileExt}`), parser);
+			accum.push(interpolateEnv(rawConfig));
 		});
 
 		return accum;

@@ -22,7 +22,7 @@ Configuration files are processed in a heiarchical manor in which a set of confi
 3. Support for JSON and YAML file formats.
 4. NODE_ENV directed configuration.
 5. Customizing overrides
-6. Mapping to environment variables
+6. Mapping from environment variables
 
 
 With a given directory, by default, configuration files are loaded in the following manor (if found):
@@ -43,7 +43,6 @@ port: 3000
 database:
   product_data:
     uri: 'postgres://db_user:password@postgres/defaultdb'
-    uri: '${DB_URI}',
     options:
       connectionTimeoutMillis: 100
       idelTimeoutMillis: 100
@@ -53,6 +52,7 @@ database:
 ```yaml
 database:
   product_data:
+    uri: '${DB_URI}',
     options:
       connectionTimeoutMillis: 30000
       idleTimeoutMillis: 5000
@@ -60,7 +60,7 @@ database:
 
 `ENV`:
 ```
-CONFIG_database__product_data__uri="postgres://produser:prodpass@services-east.pgcloud.com:172777/v6"
+DB_URI="postgres://produser:prodpass@services-east.pgcloud.com:172777/v6"
 CONFIG_port=1234
 ```
 
@@ -78,7 +78,7 @@ The resulting configuration object loaded while `NODE_ENV=production`:
     port: 4159, // from local.yaml
     database: {
         product_data: {
-            uri: 'postgres://produser:prodpass@services-east.pgcloud.com:172777/v6',  // from ENV
+            uri: 'postgres://produser:prodpass@services-east.pgcloud.com:172777/v6',  // mapped from ENV
             options: {
                 connectionTimeoutMillis: 30000, // from production.yaml
                 idleTimeoutMillis: 5000 // from production.yaml
@@ -276,6 +276,39 @@ const config = load({
 ```
 
 The above will result in an untyped config object that merges all configurations found under two different directories.
+
+## Environment Variable Mapping
+
+In some situations, it's preferred to specify deployment related configuration based on environment variables.
+
+### Mapping by field path.
+Environment variable mapping is supported by default through the use of a environment variable name prefix followed by a field path. The prefix and field delimeter are configurable, but default usage could look like:
+
+```shell
+CONFIG_some__field="value"
+```
+
+which would assign the value to:
+```json
+{
+  some: {
+    field: "value"
+  }
+}
+```
+
+### Mapping by template variables.
+To provide better interoperability between either existing environment variables or a non-path based variable naming conventions, variables can be directly mapped as interpolated values. For example:
+
+```yaml
+database:
+  host: ${DB_HOST}
+  username: ${DB_USERNAME}
+  password: ${DB_PASSWORD}
+```
+
+The same merging and type coercion logic is applied. If any of the specified environment variables do not exist, the values will fall through to any specified defaults.
+
 
 ## Debugging
 

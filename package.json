@@ -1,6 +1,6 @@
 {
 	"name": "tconf",
-	"version": "1.0.0",
+	"version": "2.0.0",
 	"description": "Heirarchical configuration with environment variable coercion and type validation.",
 	"author": "Scott Sayles",
 	"main": "dist/index.js",
@@ -26,7 +26,6 @@
 		"clean": "del-cli -f dist && del-cli -f coverage",
 		"prepublishOnly": "del-cli -f coverage"
 	},
-	"author": "ssayles",
 	"license": "ISC",
 	"devDependencies": {
 		"@types/bluebird": "^3.5.35",
