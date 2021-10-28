@@ -1,5 +1,6 @@
 database:
   host: 'database.server'
+  port: ${PORT}
 sites:
   US:
     url: ${URL_US}

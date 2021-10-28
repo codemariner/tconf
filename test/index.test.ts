@@ -368,6 +368,8 @@ describe('getConfig', () => {
 	it('should inject environment variable values from template value', () => {
 		process.env.URL_US = 'foo-us';
 		process.env.URL_CA = 'foo-ca';
+		// port value should be coerced into a number
+		process.env.PORT = '5432';
 
 		const result = load({
 			path: path.join(__dirname, 'fixtures', 'config', 'with-env'),
@@ -379,6 +381,7 @@ describe('getConfig', () => {
 			expect.objectContaining<typeof result>({
 				database: {
 					host: 'database.server',
+					port: 5432,
 				},
 				sites: {
 					US: { url: 'foo-us' },
@@ -391,6 +394,7 @@ describe('getConfig', () => {
 	it('should default unspecified values for expected environment variables', () => {
 		delete process.env.URL_US;
 		delete process.env.URL_CA;
+		delete process.env.PORT;
 
 		process.env.NODE_ENV = 'development';
 

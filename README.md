@@ -107,7 +107,7 @@ Notable dependencies:
 load<T extends Runtype | unknown>(opts:GetConfigOpts<T>): T extends Runtype ? Static<T> : any
 ```
 
-Default exported function. Load configurations based on provided options.
+Default exported function. Synchronously load configurations based on provided options.
 
 ```typescript
 import path from 'path';
@@ -135,9 +135,6 @@ const config = await loadConfig({
 server.start(config.host, config.port ?? 3000);
 
 ```
-
-### loadSync(opts:GetConfigOpts<T>)
-Synchronous version of the load function.
 
 ### Options
 

@@ -255,22 +255,26 @@ function readEnvConfig(opts: GetConfigOpts<Runtype | unknown>, schema?: Runtype)
 	);
 }
 
-function interpolateEnv(config: any) {
+function interpolateEnv(config: any, schema: any, fieldPath: string[] = []): void {
 	Object.entries(config).forEach(([key, value]) => {
+		const updatedPath = [...fieldPath, key];
 		if (typeof value === 'string') {
 			const match = value.trim().match(ENV_TEMPLATE_VALUE_REGEX);
 			if (match) {
 				if (Object.getOwnPropertyDescriptor(process.env, match[1])) {
-					config[key] = process.env[match[1]];
+					const valueType = getValueType(updatedPath, schema);
+					const envValue = process.env[match[1]] ?? '';
+					// eslint-disable-next-line no-param-reassign
+					config[key] = coerce(key, envValue, valueType);
 				} else {
+					// eslint-disable-next-line no-param-reassign
 					delete config[key];
 				}
 			}
 		} else if (value instanceof Object) {
-			interpolateEnv(value);
+			interpolateEnv(value, schema, updatedPath);
 		}
 	});
-	return config;
 }
 
 function readConfigSync(filePath: string, parser: FileParser): any {
@@ -361,7 +365,7 @@ export default function load<T extends Runtype | unknown>(
 
 		baseDirs.forEach((dir) => {
 			const rawConfig = readConfigSync(path.join(dir, `${sourceName}.${fileExt}`), parser);
-			accum.push(interpolateEnv(rawConfig));
+			accum.push(interpolateEnv(rawConfig, schema));
 		});
 
 		return accum;
