@@ -1,6 +1,6 @@
 {
 	"name": "tconf",
-	"version": "2.0.1",
+	"version": "2.0.2",
 	"description": "Heirarchical configuration with environment variable coercion and type validation.",
 	"author": "Scott Sayles",
 	"main": "dist/index.js",
@@ -47,7 +47,6 @@
 		"lint-staged": "^10.5.4",
 		"prettier": "^2.2.1",
 		"prettier-eslint-cli": "^5.0.0",
-		"runtypes": "^5.0.1",
 		"ts-jest": "^26.5.2",
 		"ts-node": "^9.1.1",
 		"typescript": "^4.2.2"
@@ -56,10 +55,8 @@
 		"bluebird": "^3.7.2",
 		"debug": "^4.3.1",
 		"deepmerge": "^4.2.2",
-		"js-yaml": "^4.0.0"
-	},
-	"peerDependencies": {
-		"runtypes": "^5.0.0"
+		"js-yaml": "^4.0.0",
+		"runtypes": "^5.1.0"
 	},
 	"husky": {
 		"hooks": {

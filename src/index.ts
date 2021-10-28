@@ -255,7 +255,7 @@ function readEnvConfig(opts: GetConfigOpts<Runtype | unknown>, schema?: Runtype)
 	);
 }
 
-function interpolateEnv(config: any, schema: any, fieldPath: string[] = []): void {
+function interpolateEnv(config: any, schema: any, fieldPath: string[] = []): any {
 	Object.entries(config).forEach(([key, value]) => {
 		const updatedPath = [...fieldPath, key];
 		if (typeof value === 'string') {
@@ -275,6 +275,7 @@ function interpolateEnv(config: any, schema: any, fieldPath: string[] = []): voi
 			interpolateEnv(value, schema, updatedPath);
 		}
 	});
+	return config;
 }
 
 function readConfigSync(filePath: string, parser: FileParser): any {
