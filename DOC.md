@@ -1,12 +1,13 @@
-# tconf reference
+![tconf](https://user-images.githubusercontent.com/33014/144646320-bb6cc527-18d6-4889-998e-e37fdc849170.png)
+# Documentation
 
 ## Table of contents
 
 * [Overview](#overview)
-* [Install](#install)
 * [Dependencies](#dependencies)
 * [Usage](#usage)
 * [API](#api)
+* [Environment Variable Mapping](#environment-variable-mapping)
 * [Debugging](#debugging)
 * [TODO](#todo)
 
@@ -85,11 +86,6 @@ The resulting configuration object loaded while `NODE_ENV=production`:
     }
 ```
 
-## Install
-
-```sh
-$ npm install tconf
-```
 
 ## Dependencies
 

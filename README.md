@@ -4,9 +4,9 @@ Adapting [12 factor app configuration](https://12factor.net/config) to a type ch
 
 ## Overview
 
-[12 factor app](https://12factor.net/config) guidelines for configuration promotes "strict separation of config from code" through the use of environment variables. While this is beneficial from a deployment perspective, how this is impelemented in many cases falls short of adequately supporting complex configuration with an application.
+[12 factor app](https://12factor.net/config) guidelines for configuration promotes "strict separation of config from code" through the use of environment variables. While this is beneficial from a deployment perspective, how this is impelemented in many cases falls short of adequately supporting complex configuration within an application.
 
-Typical approaches involve referencing `process.env` directly, perhaps with additional support through a library like [dotenv](https://github.com/motdotla/dotenv). These applications often end up working with a flat list of variables.
+Typical approaches involve referencing `process.env` directly, perhaps with additional support through a library like [dotenv](https://github.com/motdotla/dotenv). These applications often start by working with a flat list of variables.
 
 ```typescript
 const {
@@ -16,7 +16,7 @@ const {
     // ...
 } = process.env;
 ```
-As configuration becomes more complex, this flat structure becomes combersome to deal with and reason about. To combat this, it's useful to organize your configuration into heirarchies. This is often an excerise left for the developer; mapping from a flat list of env vars into a desired shape, including type coercian and validation. For example, a desired end state for your configuration might look like:
+As configuration becomes more complex, this flat structure becomes combersome to deal with and to reason about. To combat this, developers will organize their configuration into a heirarchal structure. Having to map from a flat list of env vars into a desired shape, performing type coercion from env var strings, and executing validation is often an excerise left for the developer. For example, a desired end state for your configuration might look like:
 ```typescript
 api: {
   baseUrl: string
@@ -89,7 +89,7 @@ interface Config {
 If you aren't using TypeScript or don't care about having your configuration statically typed, coerced, and validated then you can skip this.
 
 ### 3. map to env var names (optional)
-Create a config file that defines a mapping of env vars. tconf provides support for template variables that can be used for env var interpolation (similar to docker compose).
+Create a config file that defines a mapping of env vars. tconf provides support for template variables that can be used for env var interpolation (similar to [docker compose](https://docs.docker.com/compose/environment-variables/)).
 
 ```yaml
 # config/env.yaml
@@ -101,7 +101,7 @@ database:
   password: ${DB_PASSWORD}
 ```
 
-This is *also* optional. _tconf_ natively supports configuration mapping following a path naming convention. (you can set *any* configuration value using an environment variable). Only do this style of mapping if you need to refer to some specifically named environment variable to your config. The file name doesn't matter, and it doesn't have to only contain interpolation variables.
+This is also optional. _tconf_ natively supports [configuration mapping](./DOC.md#environment-variable-mapping) following a path naming convention. (you can set *any* configuration value using an environment variable). Use interpolation variables in your config only if you need to map from some specifically named variable that doesn't match your config. The file name doesn't matter, and it doesn't have to only contain interpolation variables.
 
 ### 4. load your configuration
 
@@ -120,7 +120,7 @@ export default loadConfig({
 })
 
 ```
-_tconf_ will import configurations from the defined sources (or a set of defaults) from the specified directories. Also values are merged in the order of the specified sources
+_tconf_ will import configurations from the defined sources (or a set of defaults) from the [specified directories](./DOC.md#path-required), and merge the values in the order of the [specified sources](./DOC.md#sources-optional).
 
 ### 5. use it
 ```typescript
