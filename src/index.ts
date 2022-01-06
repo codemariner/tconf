@@ -4,7 +4,7 @@ import fs from 'fs';
 import path from 'path';
 
 import yaml from 'js-yaml';
-import { Literal, Record, Runtype, Static } from 'runtypes';
+import { Literal, Record, Reflect, Runtype, Static } from 'runtypes';
 import { LiteralBase } from 'runtypes/lib/types/literal';
 import debug from 'debug';
 
@@ -140,7 +140,7 @@ function getValueType(keyPath: string[], obj: any): Runtype | undefined {
 	return undefined;
 }
 
-function coerce(envVar: string, value: string, valueType: Runtype | LiteralBase): any {
+function coerce(envVar: string, value: string, valueType: Runtype | LiteralBase | Reflect): any {
 	if (isRuntype(valueType)) {
 		if (valueType.reflect.tag === 'instanceof') {
 			const typeName = (valueType as any).ctor?.name;
@@ -203,7 +203,7 @@ function coerce(envVar: string, value: string, valueType: Runtype | LiteralBase)
 function getEnvConfig(
 	prefix: string,
 	separator: string,
-	spec?: Runtype,
+	spec?: Runtype | unknown,
 	mergeOpts?: MergeOpts
 ): any {
 	log('inspecting environment variables');
@@ -244,15 +244,6 @@ function getEnvConfig(
 
 		return deepMerge([accum, envConfig], mergeOpts);
 	}, {});
-}
-
-function readEnvConfig(opts: GetConfigOpts<Runtype | unknown>, schema?: Runtype): any {
-	return getEnvConfig(
-		opts.envPrefix ?? DEFAULT_PREFIX,
-		opts.envSeparator ?? DEFAULT_SEPARATOR,
-		schema,
-		opts?.mergeOpts
-	);
 }
 
 function interpolateEnv(config: any, schema: any, fieldPath: string[] = []): any {
@@ -313,21 +304,6 @@ function getBaseNames(filePriority: string[]): string[] {
 	}, []);
 }
 
-function mergeAndCheck<T extends Runtype | unknown>(
-	defaults: any,
-	configs: any[],
-	schema?: Runtype,
-	opts?: MergeOpts
-): T extends Runtype ? Static<T> : any {
-	const config = deepMerge([defaults, ...configs], opts);
-
-	if (schema) {
-		schema.check(config);
-	}
-
-	return config;
-}
-
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 function getInfo<T extends Runtype | unknown>(opts: GetConfigOpts<T>) {
 	const baseDirs = Array.isArray(opts.path) ? opts.path : [opts.path];
@@ -360,7 +336,10 @@ export default function load<T extends Runtype | unknown>(
 
 	const configs = baseNames.reduce((accum: any[], sourceName) => {
 		if (sourceName === 'ENV') {
-			accum.push(readEnvConfig(opts, schema));
+			const prefix = opts.envPrefix ?? DEFAULT_PREFIX;
+			const sep = opts.envSeparator ?? DEFAULT_SEPARATOR;
+			const envConfig = getEnvConfig(prefix, sep, schema, opts?.mergeOpts);
+			accum.push(envConfig);
 			return accum;
 		}
 
@@ -372,5 +351,11 @@ export default function load<T extends Runtype | unknown>(
 		return accum;
 	}, []);
 
-	return mergeAndCheck(defaults, configs, schema, opts.mergeOpts);
+	const config = deepMerge([defaults, ...configs], opts.mergeOpts);
+
+	if (schema) {
+		schema.check(config);
+	}
+
+	return config;
 }
