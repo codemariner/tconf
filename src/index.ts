@@ -5,13 +5,12 @@ import { Runtype, Static } from 'runtypes';
 
 import log from './log';
 import { deepMerge, isRuntype } from './util';
-import { getEnvConfig, interpolateEnv } from './env';
-import { jsonParser, readConfigSync, yamlParser } from './file';
+import { EnvOpts, getEnvConfig, interpolateEnv } from './env';
+import { readConfigSync } from './file';
 import { GetConfigOpts } from './types';
+import { getParser } from './parsers';
 
-export const DEFAULT_PREFIX = 'CONFIG_';
-export const DEFAULT_SEPARATOR = '__';
-
+export { DEFAULT_PREFIX, DEFAULT_SEPARATOR } from './env';
 export * from './types';
 
 function getBaseNames(filePriority: string[]): string[] {
@@ -36,7 +35,7 @@ function getInfo<T extends Runtype | unknown>(opts: GetConfigOpts<T>) {
 	const schema = isRuntype(opts.schema) ? opts.schema : undefined;
 
 	const format = opts.format ? opts.format : 'yaml';
-	const [fileExt, parser] = format === 'yaml' ? ['yaml', yamlParser] : ['json', jsonParser];
+	const parser = getParser(format);
 
 	const baseNames = getBaseNames(opts.sources ?? ['default', 'NODE_ENV', 'ENV', 'local']);
 	log(`loading files from ${baseDirs.map((d) => `${d}/`).join(',')}: ${baseNames.join(', ')}`);
@@ -44,7 +43,7 @@ function getInfo<T extends Runtype | unknown>(opts: GetConfigOpts<T>) {
 		baseDirs,
 		baseNames,
 		defaults,
-		fileExt,
+		fileExt: format,
 		parser,
 		schema,
 	};
@@ -57,9 +56,12 @@ export default function load<T extends Runtype | unknown>(
 
 	const configs = baseNames.reduce((accum: any[], sourceName) => {
 		if (sourceName === 'ENV') {
-			const prefix = opts.envPrefix ?? DEFAULT_PREFIX;
-			const sep = opts.envSeparator ?? DEFAULT_SEPARATOR;
-			const envConfig = getEnvConfig(prefix, sep, schema, opts?.mergeOpts);
+			const envOpts: EnvOpts = {
+				envPrefix: opts.envPrefix,
+				envSeparator: opts.envSeparator,
+				mergeOpts: opts.mergeOpts,
+			};
+			const envConfig = getEnvConfig(envOpts, schema);
 			accum.push(envConfig);
 			return accum;
 		}

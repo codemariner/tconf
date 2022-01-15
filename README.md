@@ -2,6 +2,18 @@
 
 Adapting [12 factor app configuration](https://12factor.net/config) to a type checked, application focused world view.
 
+## Features
+- Heirarchichal configuration - values are merged from multiple sources.
+- Supported file formats: yaml, json, json5
+- Environment specific configuration via NODE_ENV
+- Runtime type validation.
+- Type coercian of environment variables - string values can be converted to:
+  - number
+  - boolean
+  - Date
+  - RegExp
+- All values can be configured by environment variables.
+
 ## Overview
 
 [12 factor app](https://12factor.net/config) guidelines for configuration promotes "strict separation of config from code" through the use of environment variables. While this is beneficial from a deployment perspective, how this is impelemented in many cases falls short of adequately supporting complex configuration within an application.
@@ -38,6 +50,7 @@ database: {
 ...
 ```
 Representing this as a flat list of env vars is **not** an effective way to work with your configuration. _tconf_ addresses this by allowing authors to specify the desired shape and type of their configuration and performs mapping and coercian from environment variables automatically.
+
 
 ## Getting Started
 

@@ -416,4 +416,20 @@ describe('getConfig', () => {
 			})
 		);
 	});
+
+	it('should support json5 format', () => {
+		const result = load({
+			path: path.join(__dirname, 'fixtures', 'config', 'with-local'),
+			format: 'json5',
+			sources: ['default'],
+			schema: spec,
+		});
+		expect(result).toMatchObject<typeof result>(
+			expect.objectContaining({
+				database: {
+					host: 'database.server.json5',
+				},
+			})
+		);
+	});
 });

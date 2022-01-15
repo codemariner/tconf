@@ -3,21 +3,13 @@
 
 import fs from 'fs';
 
-import yaml from 'js-yaml';
-
 import baseLog from './log';
+import { ConfigParser } from './parsers';
 import { ConfigurationError } from './util';
 
 const log = baseLog.extend('file');
 
-export interface FileParser {
-	(text: string): any;
-}
-
-export const yamlParser: FileParser = (text: string): any => yaml.load(text);
-export const jsonParser: FileParser = (text: string): any => JSON.parse(text);
-
-export function readConfigSync(filePath: string, parser: FileParser): any {
+export function readConfigSync(filePath: string, parser: ConfigParser): any {
 	if (!fs.existsSync(filePath)) {
 		log(`config file ${filePath} not found`);
 		return {};

@@ -9,6 +9,23 @@ import { deepMerge, isRuntype, MergeOpts } from './util';
 const logEnv = log.extend('env');
 const ENV_TEMPLATE_VALUE_REGEX = /^\$\{(.*)\}$/;
 
+export const DEFAULT_PREFIX = 'CONFIG_';
+export const DEFAULT_SEPARATOR = '__';
+
+export interface EnvOpts {
+	envPrefix?: string;
+	envSeparator?: string;
+	mergeOpts?: MergeOpts;
+}
+
+export const defaultEnvOpts: Readonly<Required<EnvOpts>> = {
+	envPrefix: DEFAULT_PREFIX,
+	envSeparator: DEFAULT_SEPARATOR,
+	mergeOpts: {
+		arrayMergeMethod: 'overwrite',
+	},
+};
+
 function getValueType(keyPath: string[], obj: any): Runtype | undefined {
 	if (!obj) {
 		return undefined;
@@ -99,21 +116,22 @@ function coerce(envVar: string, value: string, valueType: Runtype | LiteralBase 
 	}
 }
 
-export function getEnvConfig(
-	prefix: string,
-	separator: string,
-	spec?: Runtype | unknown,
-	mergeOpts?: MergeOpts
-): any {
+export function getEnvConfig(opts: EnvOpts, spec?: Runtype | unknown): any {
+	const {
+		envPrefix = DEFAULT_PREFIX,
+		envSeparator = DEFAULT_SEPARATOR,
+		mergeOpts = { arrayMergeMethod: 'overwrite' },
+	} = opts;
+
 	log('inspecting environment variables');
-	const entries = Object.entries(process.env).filter(([k]) => k.startsWith(prefix));
+	const entries = Object.entries(process.env).filter(([k]) => k.startsWith(envPrefix));
 	return entries.reduce((accum, [k, v]) => {
 		if (!v) {
 			logEnv(`"${k}" has no value`);
 			return accum;
 		}
 		logEnv(`processing env var "${k}"`);
-		const keyPath = k.substr(prefix.length).split(separator);
+		const keyPath = k.substring(envPrefix.length).split(envSeparator);
 		let value = v;
 		if (spec) {
 			logEnv(`retrieving type information from ${keyPath.join('.')}`);

@@ -1,5 +1,6 @@
 import { Literal, Record, Runtype, Static } from 'runtypes';
 
+import { formats } from './parsers';
 import { MergeOpts } from './util';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -11,7 +12,7 @@ export type DeepPartial<T> = {
 		: DeepPartial<T[P]>;
 };
 
-export type ConfigFormat = 'yaml' | 'json';
+export type ConfigFormat = formats;
 
 interface Warning {
 	source: string;
