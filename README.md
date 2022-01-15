@@ -3,11 +3,11 @@
 Adapting [12 factor app configuration](https://12factor.net/config) to a type checked, application focused world view.
 
 ## Features
-- Heirarchichal configuration - values are merged from multiple sources.
+- Hierarchical configuration - values are merged from multiple sources.
 - Supported file formats: yaml, json, json5
 - Environment specific configuration via NODE_ENV
 - Runtime type validation.
-- Type coercian of environment variables - string values can be converted to:
+- Type coercion of environment variables - string values can be converted to:
   - number
   - boolean
   - Date
@@ -16,7 +16,7 @@ Adapting [12 factor app configuration](https://12factor.net/config) to a type ch
 
 ## Overview
 
-[12 factor app](https://12factor.net/config) guidelines for configuration promotes "strict separation of config from code" through the use of environment variables. While this is beneficial from a deployment perspective, how this is impelemented in many cases falls short of adequately supporting complex configuration within an application.
+[12 factor app](https://12factor.net/config) guidelines for configuration promotes "strict separation of config from code" through the use of environment variables. While this is beneficial from a deployment perspective, how this is implemented in many cases falls short of adequately supporting complex configuration within an application.
 
 Typical approaches involve referencing `process.env` directly, perhaps with additional support through a library like [dotenv](https://github.com/motdotla/dotenv). These applications often start by working with a flat list of variables.
 
@@ -28,7 +28,7 @@ const {
     // ...
 } = process.env;
 ```
-As configuration becomes more complex, this flat structure becomes combersome to deal with and to reason about. To combat this, developers will organize their configuration into a heirarchal structure. Having to map from a flat list of env vars into a desired shape, performing type coercion from env var strings, and executing validation is often an excerise left for the developer. For example, a desired end state for your configuration might look like:
+As configuration becomes more complex, this flat structure becomes cumbersome to deal with and to reason about. To combat this, developers will organize their configuration into a hierarchical structure. Having to map from a flat list of env vars into a desired shape, performing type coercion from env var strings, and executing validation is often an exercise left for the developer. For example, a desired end state for your configuration might look like:
 ```typescript
 api: {
   baseUrl: string
@@ -49,7 +49,7 @@ database: {
 }
 ...
 ```
-Representing this as a flat list of env vars is **not** an effective way to work with your configuration. _tconf_ addresses this by allowing authors to specify the desired shape and type of their configuration and performs mapping and coercian from environment variables automatically.
+Representing this as a flat list of env vars is **not** an effective way to work with your configuration. _tconf_ addresses this by allowing authors to specify the desired shape and type of their configuration and performs mapping and coercion from environment variables automatically.
 
 
 ## Getting Started
