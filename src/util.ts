@@ -1,4 +1,7 @@
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import deepmerge from 'deepmerge';
+import { Runtype } from 'runtypes';
 
 export interface MergeOpts {
 	arrayMergeMethod: 'combine' | 'overwrite';
@@ -30,3 +33,9 @@ export function deepMerge(objects: any[], opts?: MergeOpts): any {
 	const mergeMethod = opts?.arrayMergeMethod === 'combine' ? combineMerge : overwriteMerge;
 	return deepmerge.all(objects, { arrayMerge: mergeMethod });
 }
+
+export function isRuntype(obj?: any): obj is Runtype {
+	return !!(obj?.tag && obj?.reflect);
+}
+
+export class ConfigurationError extends Error {}
