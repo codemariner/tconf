@@ -1,0 +1,15 @@
+// a json5 format config file
+{
+	database: {
+		host: "database.server.json5",
+	},
+	sites: {
+		US: {
+			url: "https://site.us.json"
+		},
+		CA: {
+			url: "https://site.ca.json"
+		},
+	},
+	rules: ["default"],
+}
