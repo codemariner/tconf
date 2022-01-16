@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.1.1]
+
+### Bug Fixes
+* Add missing parsers file.
+
+
 ## [2.1.0]
 
 ### Chores
