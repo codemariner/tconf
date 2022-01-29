@@ -1,5 +1,8 @@
 ![tconf](https://user-images.githubusercontent.com/33014/144646320-bb6cc527-18d6-4889-998e-e37fdc849170.png)
 
+---
+[![Version](https://img.shields.io/npm/v/tconf.svg)](https://npmjs.org/package/tconf) [![Downloads/month](https://img.shields.io/npm/dm/tconf.svg)](https://npmjs.org/package/tconf) [![License](https://img.shields.io/npm/l/tconf.svg)](https://github.com/codemariner/tconf/blob/master/package.json)
+
 Adapting [12 factor app configuration](https://12factor.net/config) to a type checked, application focused world view.
 
 ## Features
