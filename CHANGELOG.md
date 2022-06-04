@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.1.2]
+
+### Chores
+* Update dependencies.
+
+
 ## [2.1.1]
 
 ### Bug Fixes
