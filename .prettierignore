@@ -8,3 +8,4 @@ kubernetes.yaml
 dev/
 .github/
 test/fixtures/config/invalid-parse
+renovate.json
