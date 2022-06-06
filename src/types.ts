@@ -84,7 +84,7 @@ export function EnumRecord<U extends EnumUnion, V extends Runtype>(
 	u: U,
 	t: V
 ): Record<{ [key in Static<typeof u>]: V }, false> {
-	return (Record(
+	return Record(
 		u.alternatives.reduce(
 			(acc, k) => ({
 				...acc,
@@ -92,5 +92,5 @@ export function EnumRecord<U extends EnumUnion, V extends Runtype>(
 			}),
 			{}
 		)
-	) as unknown) as Record<{ [key in Static<typeof u>]: V }, false>;
+	) as unknown as Record<{ [key in Static<typeof u>]: V }, false>;
 }
