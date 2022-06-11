@@ -39,7 +39,7 @@
 		"del-cli": "4.0.1",
 		"eslint": "7.32.0",
 		"eslint-config-airbnb-base": "15.0.0",
-		"eslint-config-prettier": "7.2.0",
+		"eslint-config-prettier": "8.5.0",
 		"eslint-plugin-import": "2.26.0",
 		"eslint-plugin-jest": "24.7.0",
 		"husky": "5.1.3",
