@@ -33,7 +33,7 @@
 		"@types/deepmerge": "2.2.0",
 		"@types/jest": "26.0.20",
 		"@types/js-yaml": "4.0.0",
-		"@types/node": "16.11.38",
+		"@types/node": "16.11.43",
 		"@typescript-eslint/eslint-plugin": "4.33.0",
 		"@typescript-eslint/parser": "4.33.0",
 		"del-cli": "4.0.1",
