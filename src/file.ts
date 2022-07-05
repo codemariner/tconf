@@ -25,7 +25,8 @@ export function readConfigSync(filePath: string, parser: ConfigParser): any {
 			`Error while parsing configuration file ${filePath}: ${(e as any).message}`
 		);
 	}
-	if (typeof data !== 'object' || data === null || Array.isArray(data)) {
+	data ||= {};
+	if (typeof data !== 'object' || Array.isArray(data)) {
 		throw new ConfigurationError(
 			`Invalid configuration from ${filePath}. Configuration should be an object.`
 		);
