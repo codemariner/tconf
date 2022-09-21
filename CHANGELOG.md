@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.2.1]
+
+### Chores
+* Add LICENSE file
+* Only include required files in package
+
 ## [2.2.0]
 
 ### Chores

@@ -71,6 +71,16 @@
 			"git add"
 		]
 	},
+	"files": [
+		"src/**/*",
+		"dist/**/*",
+		"package.json",
+		"README.md",
+		"DOC.md",
+		"CHANGELOG.md",
+		"LICENSE",
+		"tsconfig.json"
+	],
 	"keywords": [
 		"config",
 		"configuration",
