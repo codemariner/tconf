@@ -17,6 +17,6 @@ const parsers = {
 	json5: json5Parser,
 };
 
-export type formats = keyof typeof parsers;
+export type Formats = keyof typeof parsers;
 
-export const getParser = (format: formats): ConfigParser => parsers[format];
+export const getParser = (format: Formats): ConfigParser => parsers[format];

@@ -1,7 +1,7 @@
 /* eslint-disable jest/expect-expect */
 import path from 'path';
 
-import { Boolean, InstanceOf, Literal, Number, Partial, Record, String, Union } from 'runtypes';
+import { Array, Boolean, InstanceOf, Literal, Number, Partial, Record, String, Union } from 'runtypes';
 
 import load, { DEFAULT_PREFIX, EnumRecord } from '../src/index';
 
@@ -126,7 +126,7 @@ describe('getConfig', () => {
 		process.env.CONFIG_debug = 'true';
 		process.env.CONFIG_startTime = '12-11-2021T00:00:00';
 		const result = load({
-			path: '',
+			path: '../',
 			schema: Record({
 				port: Number,
 				debug: Boolean,
@@ -142,7 +142,7 @@ describe('getConfig', () => {
 		process.env.CONFIG_foo = 'true';
 		expect(() =>
 			load({
-				path: '',
+				path: '../',
 				schema: Record({
 					foo: InstanceOf(Foo),
 				}),
@@ -154,7 +154,7 @@ describe('getConfig', () => {
 		process.env.CONFIG_foo = 'foo';
 		process.env.CONFIG_bar = 'env-bar';
 		const result = load({
-			path: '',
+			path: '../',
 			schema: Record({
 				foo: Union(Literal('foo'), Literal('baz')),
 				bar: Literal('bar'),
@@ -174,7 +174,7 @@ describe('getConfig', () => {
 		process.env.CONFIG_foo = 'foo';
 		process.env.CONFIG_bar = 'bar';
 		const result = load({
-			path: '',
+			path: '../',
 			schema: Record({
 				foo: String,
 			}).And(
@@ -193,7 +193,7 @@ describe('getConfig', () => {
 		process.env.CONFIG_US__foo = 'us';
 		process.env.CONFIG_CA__foo = 'ca';
 		const result = load({
-			path: '',
+			path: '../',
 			schema: EnumRecord(
 				Union(Literal('US'), Literal('CA')),
 				Record({
@@ -319,7 +319,7 @@ describe('getConfig', () => {
 		process.env.CONFIG_nameMatch = '^foo-.*';
 
 		const result = load({
-			path: '',
+			path: '../',
 			schema: Record({
 				nameMatch: InstanceOf(RegExp),
 			}),

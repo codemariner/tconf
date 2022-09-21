@@ -16,15 +16,8 @@ export interface EnvOpts {
 	envPrefix?: string;
 	envSeparator?: string;
 	mergeOpts?: MergeOpts;
+    schema?: Runtype;
 }
-
-export const defaultEnvOpts: Readonly<Required<EnvOpts>> = {
-	envPrefix: DEFAULT_PREFIX,
-	envSeparator: DEFAULT_SEPARATOR,
-	mergeOpts: {
-		arrayMergeMethod: 'overwrite',
-	},
-};
 
 function getValueType(keyPath: string[], obj: any): Runtype | undefined {
 	if (!obj) {
@@ -116,11 +109,12 @@ function coerce(envVar: string, value: string, valueType: Runtype | LiteralBase 
 	}
 }
 
-export function getEnvConfig(opts: EnvOpts, spec?: Runtype | unknown): any {
+export function getEnvConfig(opts: EnvOpts): any {
 	const {
 		envPrefix = DEFAULT_PREFIX,
 		envSeparator = DEFAULT_SEPARATOR,
 		mergeOpts = { arrayMergeMethod: 'overwrite' },
+        schema
 	} = opts;
 
 	log('inspecting environment variables');
@@ -133,9 +127,9 @@ export function getEnvConfig(opts: EnvOpts, spec?: Runtype | unknown): any {
 		logEnv(`processing env var "${k}"`);
 		const keyPath = k.substring(envPrefix.length).split(envSeparator);
 		let value = v;
-		if (spec) {
+		if (schema) {
 			logEnv(`retrieving type information from ${keyPath.join('.')}`);
-			const valueType = getValueType(keyPath, spec);
+			const valueType = getValueType(keyPath, schema);
 			if (!valueType) {
 				return accum;
 			}
