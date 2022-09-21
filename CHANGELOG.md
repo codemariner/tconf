@@ -5,8 +5,9 @@ All notable changes to this project will be documented in this file.
 ## [2.2.0]
 
 ### Chores
-* Clean up code.
+* Clean up code
 * Update README
+* Package updates
 
 ### Features
 * Add support for coercion of env vars to array
