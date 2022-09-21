@@ -18,14 +18,13 @@ export function readConfigSync(filePath: string, parser: ConfigParser): any {
 	let data;
 	try {
 		const contents = fs.readFileSync(filePath, { encoding: 'utf-8' });
-		data = parser(contents);
+		data = parser(contents) ?? {};
 	} catch (e) {
 		log(`error parsing configuration file ${filePath}`, e);
 		throw new ConfigurationError(
 			`Error while parsing configuration file ${filePath}: ${(e as any).message}`
 		);
 	}
-	data ||= {};
 	if (typeof data !== 'object' || Array.isArray(data)) {
 		throw new ConfigurationError(
 			`Invalid configuration from ${filePath}. Configuration should be an object.`

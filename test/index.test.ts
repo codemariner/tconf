@@ -445,6 +445,15 @@ describe('getConfig', () => {
 		);
 	});
 
+	it('should not fail on empty file', () => {
+		const result = load({
+			path: path.join(__dirname, 'fixtures', 'config', 'with-env'),
+			format: 'yaml',
+			sources: ['empty'],
+		});
+		expect(result).toStrictEqual({});
+	});
+
 	it('should support json5 format', () => {
 		const result = load({
 			path: path.join(__dirname, 'fixtures', 'config', 'with-local'),
