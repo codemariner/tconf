@@ -16,7 +16,7 @@ export interface EnvOpts {
 	envPrefix?: string;
 	envSeparator?: string;
 	mergeOpts?: MergeOpts;
-    schema?: Runtype;
+	schema?: Runtype;
 }
 
 function getValueType(keyPath: string[], obj: any): Runtype | undefined {
@@ -85,6 +85,10 @@ function coerce(envVar: string, value: string, valueType: Runtype | LiteralBase 
 			return undefined;
 		}
 		switch (valueType.reflect.tag) {
+			case 'array':
+				return value
+					.split(',')
+					.map((val) => coerce(envVar, val.trim(), (valueType as any).element));
 			case 'number':
 				return parseInt(value, 10);
 			case 'boolean':
@@ -114,10 +118,10 @@ export function getEnvConfig(opts: EnvOpts): any {
 		envPrefix = DEFAULT_PREFIX,
 		envSeparator = DEFAULT_SEPARATOR,
 		mergeOpts = { arrayMergeMethod: 'overwrite' },
-        schema
+		schema,
 	} = opts;
 
-	log('inspecting environment variables');
+	logEnv('inspecting environment variables');
 	const entries = Object.entries(process.env).filter(([k]) => k.startsWith(envPrefix));
 	return entries.reduce((accum, [k, v]) => {
 		if (!v) {
