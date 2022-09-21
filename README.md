@@ -11,10 +11,11 @@ Adapting [12 factor app configuration](https://12factor.net/config) to a type ch
 - Environment specific configuration via NODE_ENV
 - Runtime type validation.
 - Type coercion of environment variables - string values can be converted to:
-  - number
-  - boolean
-  - Date
-  - RegExp
+  - `number`
+  - `boolean`
+  - `Date`
+  - `RegExp`
+  - `Array<number|boolean|Date|RegExp>`
 - All values can be configured by environment variables.
 
 ## Overview

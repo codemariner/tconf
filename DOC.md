@@ -166,7 +166,13 @@ With the given example above with multiple directories, files will be iterated o
 Defaults to `yaml`.  Possible values `'yaml'` or `'json'`.
 
 #### `schema` (Optional) - Runtypes object.
-If not provided, no validation or environment coercion will be performed.
+If provided, validation and value coercion will be performed. Supported
+types:
+  - `number`
+  - `boolean`
+  - `Date`
+  - `RegExp`
+  - `Array<string|number|boolean|Date|RegExp>`
 
 #### `envPrefix` (Optional)
 Prefix used to identify environment variables.  Default: `'CONFIG_'`
