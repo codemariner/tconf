@@ -44,9 +44,9 @@ function getValueType(keyPath: string[], obj: any): Runtype | undefined {
 			logEnv(`did not find a type definition for ${keyPath[0]}`);
 			return undefined;
 		}
-        if ((valueType as any).tag === 'optional') {
-            return (valueType as any).underlying;
-        }
+		if ((valueType as any).tag === 'optional') {
+			return (valueType as any).underlying;
+		}
 		return valueType as Runtype;
 	}
 	if (obj.fields) {
