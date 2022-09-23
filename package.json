@@ -1,6 +1,6 @@
 {
 	"name": "tconf",
-	"version": "2.2.1",
+	"version": "2.2.2",
 	"description": "Heirarchical configuration with environment variable coercion and type validation.",
 	"author": "Scott Sayles",
 	"main": "dist/index.js",

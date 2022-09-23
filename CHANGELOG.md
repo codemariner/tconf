@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.2.2]
+
+### Bug Fixes
+* `Optional` fields now processed correctly when performing env coercion.
+
+
 ## [2.2.1]
 
 ### Chores

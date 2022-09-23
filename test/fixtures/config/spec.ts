@@ -1,9 +1,15 @@
-import { Boolean, Literal, Number, Partial, Record, String, Union } from 'runtypes';
+import { Boolean, Literal, Number, Optional, Partial, Record, String, Union } from 'runtypes';
 
 import { EnumRecord } from '../../../src';
 
 const DatabaseConfig = Record({
 	host: String,
+	database: Optional(String),
+	options: Optional(
+		Partial({
+			maxPoolSize: Number,
+		})
+	),
 }).And(
 	Partial({
 		port: Number,

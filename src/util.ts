@@ -24,7 +24,7 @@ const combineMerge = (target: any[], source: any[], options: any): any[] => {
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function overwriteMerge<T extends any>(_destinationArray: T[], sourceArray: T[]): T[] {
+function overwriteMerge<T>(_destinationArray: T[], sourceArray: T[]): T[] {
 	return sourceArray;
 }
 

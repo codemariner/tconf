@@ -148,6 +148,31 @@ describe('getConfig', () => {
 		expect(result.startTime).toBeInstanceOf(Date);
 	});
 
+	it('should support Optional values when coercing from ENV', () => {
+		process.env.NODE_ENV = 'development';
+		process.env.CONFIG_database__database = 'dbName';
+		process.env.CONFIG_database__options__maxPoolSize = '100';
+		const result = load({
+			path: path.join(__dirname, 'fixtures', 'config', 'with-env'),
+			schema: spec,
+		});
+		expect(result).toMatchObject(
+			expect.objectContaining<typeof result>({
+				database: {
+					host: 'database.server.dev',
+					database: 'dbName',
+					options: {
+						maxPoolSize: 100,
+					},
+				},
+				sites: {
+					US: { url: 'https://site.us.dev' },
+					CA: { url: 'https://site.ca.dev' },
+				},
+			})
+		);
+	});
+
 	it('should not error on invalid env coercion', () => {
 		process.env.CONFIG_foo = 'true';
 		expect(() =>

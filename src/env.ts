@@ -33,12 +33,20 @@ function getValueType(keyPath: string[], obj: any): Runtype | undefined {
 		}
 		return undefined;
 	}
+	if (obj.tag === 'optional') {
+		// then we need to traverse into the optional
+		return getValueType(keyPath, (obj as any).underlying);
+	}
+
 	if (keyPath.length === 1) {
 		const valueType = obj.fields?.[keyPath[0]];
 		if (!valueType) {
 			logEnv(`did not find a type definition for ${keyPath[0]}`);
 			return undefined;
 		}
+        if ((valueType as any).tag === 'optional') {
+            return (valueType as any).underlying;
+        }
 		return valueType as Runtype;
 	}
 	if (obj.fields) {
@@ -152,7 +160,6 @@ export function getEnvConfig(opts: EnvOpts): any {
 				};
 			}
 			return {
-				...accum,
 				[prop]: obj,
 			};
 		}, {});
