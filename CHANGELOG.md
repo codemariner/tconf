@@ -4,8 +4,22 @@ All notable changes to this project will be documented in this file.
 
 ## [2.2.2]
 
+### Chores
+* Upgrade eslint packages.
+
 ### Bug Fixes
 * `Optional` fields now processed correctly when performing env coercion.
+  For example, the following should be able to be mapped correctly from
+  env vars:
+  ```typescript
+  const DbConfig = Record({
+    host: String,
+	database: Optional(String),
+  });
+  ```
+  This was previously failing to recognize the `Optional`.
+* Fixed an issue with env config merging. Nested properties were being assigned
+  at the wrong path.
 
 
 ## [2.2.1]
