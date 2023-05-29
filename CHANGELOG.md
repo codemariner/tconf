@@ -2,6 +2,33 @@
 
 All notable changes to this project will be documented in this file.
 
+## [3.0.0]
+
+### Features
+* Add support for modular configuration.
+
+### Breaking Changes
+* The default `load` function has been removed, though it is still available. Callers should instead use the new `initialize` function to load configuration and get an instance of `Tconf`.
+
+  * before:
+    ```typescript
+    import loadConfig from 'tconf';
+   
+    const config = loadConfig({...})
+   
+    export default config;
+    ```
+  * after:
+    ```typescript
+    import { initialize } from 'tconf';
+
+    // export our tconf instance so modules can register their own configuration
+    // (without having to make it global to the entire application)
+    export const tconf = initialize({...})
+
+    export default tconf.get();
+    ```
+
 ## [2.2.2]
 
 ### Chores
