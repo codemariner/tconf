@@ -1,78 +1,76 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import path from 'path';
 
-import { Runtype, Static } from 'runtypes';
+import { Record, Runtype, Static } from 'runtypes';
 
-import log from './log';
-import { deepMerge } from './util';
-import { EnvOpts, getEnvConfig, interpolateEnv } from './env';
-import { readConfigSync } from './file';
-import { GetConfigOpts } from './types';
-import { getParser } from './parsers';
+import load, { LoadConfigOpts } from './load-config';
+import { DeepPartial } from './types';
 
 export { DEFAULT_PREFIX, DEFAULT_SEPARATOR } from './env';
 export * from './types';
 
-function getSourceNames(filePriority: string[]): string[] {
-	return filePriority.reduce((accum: string[], name) => {
-		if (name === 'NODE_ENV' && process.env.NODE_ENV) {
-			accum.push(process.env.NODE_ENV);
-		} else {
-			accum.push(name);
-		}
-		return accum;
-	}, []);
-}
+export type TconfOpts<Schema extends Runtype> = Pick<
+	LoadConfigOpts,
+	'envPrefix' | 'envSeparator' | 'format' | 'mergeOpts' | 'path' | 'sources'
+> & {
+	schema?: Schema;
+	defaults?: DeepPartial<Static<Schema>>;
+};
 
-function getSourceDirectories(opts: Pick<GetConfigOpts, 'path'>): string[] {
-	const paths = Array.isArray(opts.path) ? opts.path : [opts.path];
-	if (!paths.length) {
-		throw new Error('At least one path value must be specified');
-	}
-	return paths;
-}
+export class Tconf<T extends Runtype> {
+	private opts: TconfOpts<T>;
 
-function getConfigFromEnv(opts: GetConfigOpts<Runtype | undefined>): any {
-	const envOpts: EnvOpts = {
-		envPrefix: opts.envPrefix,
-		envSeparator: opts.envSeparator,
-		mergeOpts: opts.mergeOpts,
-		schema: opts.schema,
-	};
-	const result = getEnvConfig(envOpts);
-	return result;
-}
+	private config: Static<T> = {};
 
-export default function load<Schema extends Runtype | undefined>(
-	opts: GetConfigOpts<Schema>
-): Schema extends Runtype ? Static<Schema> : any {
-	const { format = 'yaml', schema } = opts;
+	private registry: Map<string, Runtype> = new Map();
 
-	const directories = getSourceDirectories(opts);
+	private schema: Runtype;
 
-	const sourceNames = getSourceNames(opts.sources ?? ['default', 'NODE_ENV', 'ENV', 'local']);
-	log(`loading files from ${directories.map((d) => `${d}/`).join(',')}: ${sourceNames.join(', ')}`);
-
-	const parser = getParser(format);
-
-	const configs = sourceNames.flatMap((sourceName) => {
-		log(`processing source ${sourceName}`);
-		if (sourceName === 'ENV') {
-			return getConfigFromEnv(opts);
-		}
-		return directories.map((dir) => {
-			const rawConfig = readConfigSync(path.join(dir, `${sourceName}.${format}`), parser);
-			return interpolateEnv(rawConfig, schema);
+	// eslint-disable-next-line no-useless-constructor
+	constructor(opts: TconfOpts<T>) {
+		this.opts = opts;
+		this.schema = opts.schema ?? Record({});
+		this.config = load({
+			...opts,
+			defaults: opts.defaults as any,
 		});
-	});
-
-	const defaults = opts.defaults ? interpolateEnv(opts.defaults, schema) : {};
-
-	const config = deepMerge([defaults, ...configs], opts.mergeOpts);
-
-	if (schema) {
-		schema.check(config);
 	}
 
-	return config;
+	/**
+	 * Register a named configuration, validate, and return it. This will reload all configuration.
+	 */
+	register<Schema extends Runtype>(name: string, schema: Schema): Static<Schema> {
+		if (this.registry.has(name)) {
+			throw new Error(`Configuration for ${name} has already been registered`);
+		}
+
+		const moduleSchema = Record({
+			[name]: schema,
+		});
+
+		this.schema = this.schema.And(moduleSchema);
+
+		this.config = load({
+			...this.opts,
+			schema: this.schema,
+		});
+
+		this.registry.set(name, schema);
+
+		// `load` will validate the schema and return the expected type
+		return (this.config as any)[name];
+	}
+
+	/**
+	 * Returns the entirtey of loaded configuration.
+	 */
+	get(): Static<T> {
+		return this.config;
+	}
+}
+
+/**
+ * Initializes a common instance of tconf with the given options.
+ */
+export function initialize<T extends Runtype>(opts: TconfOpts<T>): Tconf<T> {
+	return new Tconf(opts);
 }

@@ -13,7 +13,9 @@ import {
 	Union,
 } from 'runtypes';
 
-import load, { DEFAULT_PREFIX, EnumRecord } from '../src/index';
+import { EnumRecord } from '../src/types';
+import { DEFAULT_PREFIX } from '../src/env';
+import load from '../src/load-config';
 
 import spec from './fixtures/config/spec';
 

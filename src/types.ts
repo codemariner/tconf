@@ -1,7 +1,6 @@
 import { Literal, Record, Runtype, Static } from 'runtypes';
 
 import { Formats } from './parsers';
-import { MergeOpts } from './util';
 
 export type Maybe<T> = T | undefined;
 
@@ -15,39 +14,6 @@ export type DeepPartial<T> = {
 };
 
 export type ConfigFormat = Formats;
-
-interface Warning {
-	source: string;
-	path: string;
-	message: string;
-}
-interface WarningHandler {
-	(warning: Warning): unknown;
-}
-
-export interface GetConfigOpts<Schema extends Runtype | undefined = Runtype> {
-	/** Format of configuration files.  Defaults to 'yaml'. */
-	format?: ConfigFormat;
-	/** path to config directories */
-	path: string | string[];
-	/** Runtype object that defines the specification for the configuration. */
-	schema?: Schema;
-	/** Prefix used to name environment variables.  Default is 'CONFIG_' */
-	envPrefix?: string;
-	/** object path separator key.  Default is '__'. */
-	envSeparator?: string;
-	/** manually inject defaults */
-	defaults?: Schema extends Runtype ? DeepPartial<Static<Schema>> : any;
-	/**
-	 * override the list of sources to read configuration from.
-	 * Special tokens:
-	 *   - `ENV`: read from process.env
-	 *   - `NODE_ENV`: read from a file matching the basename as process.env.NODE_ENV
-	 */
-	sources?: string[];
-	mergeOpts?: MergeOpts;
-	warnings?: WarningHandler;
-}
 
 export interface EnumUnion extends Runtype<string> {
 	alternatives: Literal<string>[];

@@ -96,18 +96,15 @@ Notable dependencies:
 
 ## API
 
-### load(opts:GetConfigOpts<T>)
-```typescript
-load<T extends Runtype | unknown>(opts:GetConfigOpts<T>): T extends Runtype ? Static<T> : any
-```
+### initialize<T extends Runtype>(opts:TconfOpts<T>):Tconf<T>
 
-Default exported function. Synchronously load configurations based on provided options.
+Synchronously loads configurations based on provided options and returns an instance of Tconf.
 
 ```typescript
 import path from 'path';
 
 import { Number, Record, String } from 'runtypes';
-import loadConfig from 'tconf';
+import {initialize} from 'tconf';
 
 const schema = Record({
     host: String,
@@ -115,29 +112,25 @@ const schema = Record({
     port: Number,
 }));
 
-const config = await loadConfig({
+const tconf = initialize({
     path: path.join(__dirname, '..', 'config'),
     schema,
 });
-// -> config has the type from schema (Static<typeof schema>) which is the same as
-// 
-// interface schema {
-//     host: string;
-//     port?: number;
-// }
+
+const config = tconf.get();
 
 server.start(config.host, config.port ?? 3000);
 
 ```
 
-### Options
+#### Options
 
-#### `path` (Required)
+##### `path` (Required)
 Path to directory, or set of paths for multiple directories, containing configuration files.
 
 Single directory:
 ```typescript
-const config = load({
+const tconf = initialize({
     path: '../config'
 })
 ```
@@ -145,7 +138,7 @@ const config = load({
 Multiple directories:
 
 ```typescript
-const config = load({
+const tconf = initialize({
     path: [
       '../config',
       '../config/secret',
@@ -162,10 +155,10 @@ With the given example above with multiple directories, files will be iterated o
 5. `config/local.yaml`
 6. `config/secret/local.yaml`
 
-#### `format` (Optional)
+##### `format` (Optional)
 Defaults to `yaml`.  Possible values `'yaml'` or `'json'`.
 
-#### `schema` (Optional) - Runtypes object.
+##### `schema` (Optional) - Runtypes object.
 If provided, validation and value coercion will be performed. Supported
 types:
   - `number`
@@ -174,7 +167,7 @@ types:
   - `RegExp`
   - `Array<string|number|boolean|Date|RegExp>`
 
-#### `envPrefix` (Optional)
+##### `envPrefix` (Optional)
 Prefix used to identify environment variables.  Default: `'CONFIG_'`
 
 ```shell
@@ -186,10 +179,11 @@ CONFIG_server__host='http://myserver.com'
 With override:
 
 ```typescript
-const config = load({
+const tconf = initialize({
   path: '../config',
   envPrefix: 'CFG_',
 });
+const config = tconf.get();
 
 // $ CFG_server__host='http://foo.com'
 //
@@ -197,7 +191,7 @@ const config = load({
 
 ```
 
-#### `envSeparator` (Optional)
+##### `envSeparator` (Optional)
 Path separator for nested configurations to use in env variables.  Default: `'__'`
 
 ```yaml
@@ -211,7 +205,7 @@ CONFIG_database__options__maxPoolSize=10
 ```
 
 
-#### `mergeOpts:{}` (Optional)
+##### `mergeOpts:{}` (Optional)
 
 Defaults to `'overwrite'`.  Possible values `'combine'` or `'overwrite'`.
 
@@ -239,20 +233,21 @@ deepMerge(a,b, { arrayMergeMethod: 'combine' })
 mergeOpts usage:
 
 ```typescript
-const config = load({
+const tconf = initialize({
     path: '../config',
     mergeOpts: {
         arrayMergeMethod: 'combine'
     }
 })
+const config = tconf.get();
 ```
 
-#### `defaults` (Optional)
+##### `defaults` (Optional)
 JSON object that conforms to the schema
 
 This is used as default configuration values. Particularly used for testing.
 
-#### `sources` (Optional)
+##### `sources` (Optional)
 List of sources, in priority order, to process.  These values are either **base** file names, or the tokens `NODE_ENV` and `ENV`.
 
 By default, the sources are defined in the following order:
@@ -265,14 +260,70 @@ By default, the sources are defined in the following order:
 Files are read across all specified paths in the same order.  Sample override:
 
 ```typescript
-const config = load({
+const tconf = initialize({
   format: 'json',
   path: ['config', 'config/secret'],
   sources: ['base', 'NODE_ENV', 'ENV', 'local']
 })
+const config = tconf.get()
 ```
 
 The above will result in an untyped config object that merges all configurations found under two different directories.
+
+### Tconf#register\<T extends Runtype\>(name:string, schema:T):Static\<typeof T\>
+Registers a named configuration with associated schema. This will load, validate, and return the schema synchronously. This allows application modules to have their configuration managed by a common tconf instance.
+
+## Modular Configuration
+
+Application modules may register local configuration with tconf while maintaining the same configuration sources.
+
+First, initialize your global configuration. This will establish the common location and options for loading configuration.
+
+```typescript
+// src/config.ts
+import path from 'path';
+import {initialize} from 'tconf';
+import { Number, Record } from 'runtypes';
+
+const Config = Record({
+    api: Record({
+        port: Number
+    })
+})
+
+export const tconf = initialize({
+    path: path.join(__dirname, '..', 'config),
+    schema: Config
+})
+
+export default tconf.get(); // Static<typeof Config>
+```
+
+Then in your module, register your local schema against a unique name.
+```typescript
+// src/modules/crypto/config.ts
+import { tconf } from '../../config'
+import { Record, String } from 'runtypes';
+
+const Schema = Record({
+    key: String
+})
+
+const config = tconf.register('crypto', Schema); // Static<typeof Schema>
+
+export default config;
+```
+
+
+Module configuration is mapped to a named section in configuration files.
+```yaml
+# config/default.yaml
+api:
+  port: 3000
+
+crypto: # <-- module config
+  key: 6K0CjNioiXER0qlXRDrOozWgbFZ9LmG/nnOjl0s4NqM=
+```
 
 ## Environment Variable Mapping
 
