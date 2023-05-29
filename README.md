@@ -10,6 +10,7 @@ Adapting [12 factor app configuration](https://12factor.net/config) to a type ch
 - Supported file formats: yaml, json, json5
 - Environment specific configuration via NODE_ENV
 - Runtime type validation.
+- Support for modulare configuration.
 - Type coercion of environment variables - string values can be converted to:
   - `number`
   - `boolean`

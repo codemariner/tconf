@@ -1,0 +1,5 @@
+api:
+  port: 3000
+
+crypto:
+  key: '6K0CjNioiXER0qlXRDrOozWgbFZ9LmG/nnOjl0s4NqM='
