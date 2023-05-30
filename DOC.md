@@ -275,7 +275,7 @@ Registers a named configuration with associated schema. This will load, validate
 
 ## Modular Configuration
 
-Application modules may register local configuration with tconf while maintaining the same configuration sources.
+Application modules may register configuration with tconf while using the same configuration sources.
 
 First, initialize your global configuration. This will establish the common location and options for loading configuration.
 
@@ -291,6 +291,7 @@ const Config = Record({
     })
 })
 
+// exporting this so modules can register their configuration
 export const tconf = initialize({
     path: path.join(__dirname, '..', 'config),
     schema: Config
@@ -324,6 +325,11 @@ api:
 crypto: # <-- module config
   key: 6K0CjNioiXER0qlXRDrOozWgbFZ9LmG/nnOjl0s4NqM=
 ```
+
+{% note %}
+**Note:** Tconf will provide all configuration it finds and does not filter any out when requesting from the top level `tconf.get()`. However, when strictly typing with Runtypes and TypeScript, other module configuration types are not exposed. In this way, your application code can act as if it doesn't exist though it literally does.
+{% endnote %}
+
 
 ## Environment Variable Mapping
 
