@@ -125,9 +125,9 @@ This is also optional. _tconf_ natively supports [configuration mapping](./DOC.m
 
 ```typescript
 // src/config.ts
-import loadConfig from 'tconf'
+import { initialize } from 'tconf'
 
-export default loadConfig({
+const tconf = initialize({
   // directories containing configuration files
   path: path.join(__dirname, '..', 'config'),
   // the runtypes Config object (optional)
@@ -136,6 +136,7 @@ export default loadConfig({
   // default.yaml, ${NODE_ENV}.yaml, and env.yaml
   sources: ['default', 'NODE_ENV', 'env'],
 })
+export default tconf.get();
 
 ```
 _tconf_ will import configurations from the defined sources (or a set of defaults) from the [specified directories](./DOC.md#path-required), and merge the values in the order of the [specified sources](./DOC.md#sources-optional).
@@ -147,6 +148,46 @@ import config from './config'
 import dbConnect from './db'
 
 const conn = await dbConnect(config.database);
+```
+
+### 6. use in isolated modules
+Within larger applications, you may want to isolate certain areas of your code into modules (i.e. moduler monolith). It may make sense to isolate your configuration to such modules as well.
+
+First, expose your initialized Tconf instance:
+```typescript
+// src/config.ts
+import { initialize } from 'tconf'
+
+export const tconf = initialize({ // <-- export the instance
+    // ...
+})
+export default tconf.get();
+```
+
+Then in your module, register your configuration schema and provide access to your module.
+
+```typescript
+// src/modules/db/config.ts
+import {tconf} from '../../config'
+
+const Config = Record({
+    uri: String
+})
+
+const config = tconf.register('database', Config); // Static<typeof Config>
+
+export default config
+
+```
+
+The configuration will be sourced the same way, but you'll need to add your configuration under the registered name.
+```yaml
+# config/default.yaml
+api:
+  # //...
+
+database:
+  uri: postgresql://host.com:5432/appdb
 ```
 
 
