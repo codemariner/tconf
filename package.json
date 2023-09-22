@@ -57,7 +57,7 @@
 		"deepmerge": "^4.2.2",
 		"js-yaml": "^4.1.0",
 		"json5": "^2.2.0",
-		"runtypes": "^6.5.0"
+		"runtypes": "^6.7.0"
 	},
 	"husky": {
 		"hooks": {

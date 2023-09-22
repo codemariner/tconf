@@ -1,0 +1,7 @@
+database:
+  port: ${PORT:4000}
+sites:
+  US:
+    url: ${URL_US:"https://us.com"}
+  CA:
+    url: ${URL_CA:"https://ca.com"}

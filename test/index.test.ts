@@ -175,6 +175,31 @@ describe('getConfig', () => {
 		);
 	});
 
+    it('should use default values for env templates', () => {
+        process.env.URL_CA = 'test'
+        const result = load({
+            path: path.join(__dirname, 'fixtures', 'config', 'with-env'),
+            sources: ['default', 'env-defaults'],
+            schema: spec
+        })
+        expect(result).toMatchObject(
+            expect.objectContaining<typeof result>({
+                database: {
+                    host: 'database.server',
+                    port: 4000,
+                },
+                sites: {
+                  CA: {
+                      url: 'test'
+                  },
+                  US: {
+                      url: 'https://us.com'
+                  }
+                }
+            })
+        );
+    })
+
 	it('should not error on invalid env coercion', () => {
 		process.env.CONFIG_foo = 'true';
 		expect(() =>

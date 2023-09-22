@@ -7,7 +7,7 @@ import log from './log';
 import { deepMerge, isRuntype, MergeOpts } from './util';
 
 const logEnv = log.extend('env');
-const ENV_TEMPLATE_VALUE_REGEX = /^\$\{(.*)\}$/;
+const ENV_TEMPLATE_VALUE_REGEX = /\$\{([^:]+):?(.*)\}$/;
 
 export const DEFAULT_PREFIX = 'CONFIG_';
 export const DEFAULT_SEPARATOR = '__';
@@ -168,21 +168,53 @@ export function getEnvConfig(opts: EnvOpts): any {
 	}, {});
 }
 
+export function getEnvValue(value:string):string|void {
+    if (!value.length) {
+        return
+    }
+    const matches = value.trim().match(ENV_TEMPLATE_VALUE_REGEX);
+    if (!matches?.[1]) {
+        return;
+    }
+    const envVar = matches[1];
+    const envValue = process.env[envVar]
+
+    if (envValue) {
+        return envValue;
+    }
+
+    if (matches[2]) {
+        const defaultValue = matches[2].trim()
+        if (
+            (defaultValue.startsWith('"') && defaultValue.endsWith('"')) ||
+            (defaultValue.startsWith('\'') && defaultValue.endsWith('\''))
+        ) {
+            return defaultValue.substring(1, defaultValue.length - 1);
+        }
+        return defaultValue;
+    }
+    const defaultValue:string|undefined = matches[2]?.trim()?.match(/^["'](.+(?=["']$))["']$/)?.[1];
+    if (!envValue) {
+        return defaultValue
+    }
+    return envValue;
+}
+
 export function interpolateEnv(config: any, schema: unknown, fieldPath: string[] = []): any {
 	Object.entries(config).forEach(([key, value]) => {
 		const updatedPath = [...fieldPath, key];
 		if (typeof value === 'string') {
 			const match = value.trim().match(ENV_TEMPLATE_VALUE_REGEX);
 			if (match) {
-				if (Object.getOwnPropertyDescriptor(process.env, match[1])) {
-					const valueType = getValueType(updatedPath, schema);
-					const envValue = process.env[match[1]] ?? '';
-					// eslint-disable-next-line no-param-reassign
-					config[key] = coerce(key, envValue, valueType);
-				} else {
+				const valueType = getValueType(updatedPath, schema);
+				const envValue = getEnvValue(value) ?? '';
+                if (!envValue) {
 					// eslint-disable-next-line no-param-reassign
 					delete config[key];
-				}
+                } else {
+				    // eslint-disable-next-line no-param-reassign
+				    config[key] = coerce(key, envValue, valueType);
+                }
 			}
 		} else if (value instanceof Object) {
 			interpolateEnv(value, schema, updatedPath);

@@ -17,7 +17,7 @@ Adapting [12 factor app configuration](https://12factor.net/config) to a type ch
   - `Date`
   - `RegExp`
   - `Array<number|boolean|Date|RegExp>`
-- All values can be configured by environment variables.
+- All values can implicitly be configured by environment variables.
 
 ## Overview
 
@@ -107,19 +107,19 @@ interface Config {
 If you aren't using TypeScript or don't care about having your configuration statically typed, coerced, and validated then you can skip this.
 
 ### 3. map to env var names (optional)
-Create a config file that defines a mapping of env vars. tconf provides support for template variables that can be used for env var interpolation (similar to [docker compose](https://docs.docker.com/compose/environment-variables/)).
+Create a config file that defines a mapping of env vars. tconf provides support for template variables that can be used for env var interpolation (similar to [docker compose](https://docs.docker.com/compose/environment-variables/)) and also allows for assigning default values.
 
 ```yaml
 # config/env.yaml
 api:
-  port: ${API_PORT}
+  port: ${API_PORT:3000}
 database:
-  host: ${DB_HOST}
+  host: ${DB_HOST:"db.domain.com"}
   username: ${DB_USER}
   password: ${DB_PASSWORD}
 ```
 
-This is also optional. _tconf_ natively supports [configuration mapping](./DOC.md#environment-variable-mapping) following a path naming convention. (you can set *any* configuration value using an environment variable). Use interpolation variables in your config only if you need to map from some specifically named variable that doesn't match your config. The file name doesn't matter, and it doesn't have to only contain interpolation variables.
+This is also optional. _tconf_ natively supports [configuration mapping from environment variables](./DOC.md#environment-variable-mapping) following a path naming convention. (you can set *any* configuration value using an environment variable). Use interpolation variables in your config only if you need to map from some specifically named variable that doesn't match your config.
 
 ### 4. load your configuration
 
@@ -151,7 +151,7 @@ const conn = await dbConnect(config.database);
 ```
 
 ### 6. use in isolated modules
-Within larger applications, you may want to isolate certain areas of your code into modules (i.e. modular monolith). It may make sense to isolate your configuration to such modules as well.
+Within larger applications, you may want to isolate certain areas of your code into modules. It may make sense to isolate your configuration to such modules as well.
 
 First, expose your initialized Tconf instance:
 ```typescript
@@ -161,7 +161,7 @@ import { initialize } from 'tconf'
 export const tconf = initialize({ // <-- export the instance
     // ...
 })
-export default tconf.get();
+export default tconf.get(); // exports the configuration
 ```
 
 Then in your module, register your configuration schema and provide access to your module.

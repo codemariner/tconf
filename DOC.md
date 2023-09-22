@@ -333,7 +333,7 @@ crypto: # <-- module config
 
 ## Environment Variable Mapping
 
-In some situations, it's preferred to specify deployment related configuration based on environment variables.
+In some cases, it's preferred to specify deployment related configuration based on environment variables.
 
 ### Mapping by field path.
 Environment variable mapping is supported by default through the use of a environment variable name prefix followed by a field path. The prefix and field delimeter are configurable, but default usage could look like:
@@ -362,6 +362,18 @@ database:
 ```
 
 The same merging and type coercion logic is applied. If any of the specified environment variables do not exist, the values will fall through to any specified defaults.
+
+#### Default values
+A default value may optionally be defined within the environment variable template. For example:
+
+```yaml
+database:
+  host: ${DB_HOST:localhost}
+  username: ${DB_USERNAME:user}
+  password: ${DB_PASSWORD:"xSie:rJ39i023s"}
+```
+
+The default value follows after the `:` delimiter. Double or single quotes surrounding the value are optional.
 
 
 ## Debugging
