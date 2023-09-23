@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [3.1.0]
+
+### Features
+* Support default values for environment variable templates. 
+  * example:
+    ```yaml
+    api:
+      port: ${PORT:3000}
+    ```
+
+### Chores
+* Update runtypes to 6.7.0
+
 ## [3.0.0]
 
 ### Features
