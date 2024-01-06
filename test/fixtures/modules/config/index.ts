@@ -1,6 +1,6 @@
 import { Number, Record } from 'runtypes';
 
-import { initialize } from '../../../../src';
+import { initialize } from '../../../../src/index.js';
 
 const globalSchema = Record({
 	api: Record({

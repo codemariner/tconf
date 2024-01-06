@@ -13,11 +13,11 @@ import {
 	Union,
 } from 'runtypes';
 
-import { EnumRecord } from '../src/types';
-import { DEFAULT_PREFIX } from '../src/env';
-import load from '../src/load-config';
+import { EnumRecord } from '../src/types.js';
+import { DEFAULT_PREFIX } from '../src/env.js';
+import load from '../src/load-config.js';
 
-import spec from './fixtures/config/spec';
+import spec from './fixtures/config/spec.js';
 
 // for testing
 class Foo {}

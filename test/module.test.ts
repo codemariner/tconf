@@ -3,9 +3,9 @@ import path from 'path';
 
 import { Record, String } from 'runtypes';
 
-import { initialize } from '../src';
+import { initialize } from '../src/index.js';
 
-import { tconf } from './fixtures/modules/config';
+import { tconf } from './fixtures/modules/config/index.js';
 
 describe('tconf modular support', () => {
 	it('should allow for registering configurations', () => {
