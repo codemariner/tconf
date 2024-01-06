@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Reflect, Runtype } from 'runtypes';
-import { LiteralBase } from 'runtypes/lib/types/literal';
+import type { LiteralBase } from 'runtypes/lib/types/literal.js';
 
-import log from './log';
-import { deepMerge, isRuntype, MergeOpts } from './util';
+import log from './log.js';
+import { deepMerge, isRuntype, MergeOpts } from './util.js';
 
 const logEnv = log.extend('env');
 const ENV_TEMPLATE_VALUE_REGEX = /\$\{([^:]+):?(.*)\}$/;

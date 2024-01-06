@@ -2,11 +2,11 @@
 
 import { Record, Runtype, Static } from 'runtypes';
 
-import load, { LoadConfigOpts } from './load-config';
-import { DeepPartial } from './types';
+import load, { LoadConfigOpts } from './load-config.js';
+import { DeepPartial } from './types.js';
 
-export { DEFAULT_PREFIX, DEFAULT_SEPARATOR } from './env';
-export * from './types';
+export { DEFAULT_PREFIX, DEFAULT_SEPARATOR } from './env.js';
+export * from './types.js';
 
 export type TconfOpts<Schema extends Runtype> = Pick<
 	LoadConfigOpts,

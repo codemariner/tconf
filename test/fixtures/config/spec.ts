@@ -1,6 +1,6 @@
 import { Boolean, Literal, Number, Optional, Partial, Record, String, Union } from 'runtypes';
 
-import { EnumRecord } from '../../../src';
+import { EnumRecord } from '../../../src/index.js';
 
 const DatabaseConfig = Record({
 	host: String,

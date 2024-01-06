@@ -1,6 +1,6 @@
 import { Literal, Record, Runtype, Static } from 'runtypes';
 
-import { Formats } from './parsers';
+import { Formats } from './parsers.js';
 
 export type Maybe<T> = T | undefined;
 

@@ -3,12 +3,12 @@ import path from 'path';
 
 import { Runtype, Static } from 'runtypes';
 
-import log from './log';
-import { deepMerge, MergeOpts } from './util';
-import { EnvOpts, getEnvConfig, interpolateEnv } from './env';
-import { readConfigSync } from './file';
-import { ConfigFormat, DeepPartial } from './types';
-import { getParser } from './parsers';
+import log from './log.js';
+import { deepMerge, MergeOpts } from './util.js';
+import { EnvOpts, getEnvConfig, interpolateEnv } from './env.js';
+import { readConfigSync } from './file.js';
+import { ConfigFormat, DeepPartial } from './types.js';
+import { getParser } from './parsers.js';
 
 export interface LoadConfigOpts<Schema extends Runtype | undefined = Runtype> {
 	/** Format of configuration files.  Defaults to 'yaml'. */
