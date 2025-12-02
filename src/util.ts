@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import deepmerge from 'deepmerge';
-import { Runtype } from 'runtypes';
+import { z } from 'zod';
 
 export interface MergeOpts {
 	arrayMergeMethod: 'combine' | 'overwrite';
@@ -34,8 +34,8 @@ export function deepMerge(objects: any[], opts?: MergeOpts): any {
 	return deepmerge.all(objects, { arrayMerge: mergeMethod });
 }
 
-export function isRuntype(obj?: any): obj is Runtype {
-	return !!(obj?.tag && obj?.reflect);
+export function isZodSchema(obj?: any): obj is z.ZodTypeAny {
+	return obj instanceof z.ZodType;
 }
 
 export class ConfigurationError extends Error {}

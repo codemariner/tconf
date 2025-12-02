@@ -1,31 +1,36 @@
-import { Boolean, Literal, Number, Optional, Partial, Record, String, Union } from 'runtypes';
+import { z } from 'zod';
 
-import { EnumRecord } from '../../../src';
+import { EnumRecord } from '../../../src/index.js';
 
-const DatabaseConfig = Record({
-	host: String,
-	database: Optional(String),
-	options: Optional(
-		Partial({
-			maxPoolSize: Number,
-		})
-	),
-}).And(
-	Partial({
-		port: Number,
-		debug: Boolean,
+const DatabaseConfig = z
+	.object({
+		host: z.string(),
+		database: z.string().optional(),
+		options: z
+			.object({
+				maxPoolSize: z.number(),
+			})
+			.partial()
+			.optional(),
 	})
-);
+	.merge(
+		z
+			.object({
+				port: z.number(),
+				debug: z.boolean(),
+			})
+			.partial()
+	);
 
-const SiteId = Union(Literal('US'), Literal('CA'));
+const SiteId = z.enum(['US', 'CA']);
 
-const SiteOptions = Record({
-	url: String,
+const SiteOptions = z.object({
+	url: z.string(),
 });
 
 const SiteConfig = EnumRecord(SiteId, SiteOptions);
 
-const Config = Record({
+const Config = z.object({
 	database: DatabaseConfig,
 	sites: SiteConfig,
 });

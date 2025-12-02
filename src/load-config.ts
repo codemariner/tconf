@@ -1,28 +1,28 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import path from 'path';
 
-import { Runtype, Static } from 'runtypes';
+import { z } from 'zod';
 
-import log from './log';
-import { deepMerge, MergeOpts } from './util';
-import { EnvOpts, getEnvConfig, interpolateEnv } from './env';
-import { readConfigSync } from './file';
-import { ConfigFormat, DeepPartial } from './types';
-import { getParser } from './parsers';
+import log from './log.js';
+import { deepMerge, MergeOpts } from './util.js';
+import { EnvOpts, getEnvConfig, interpolateEnv } from './env.js';
+import { readConfigSync } from './file.js';
+import { ConfigFormat, DeepPartial } from './types.js';
+import { getParser } from './parsers.js';
 
-export interface LoadConfigOpts<Schema extends Runtype | undefined = Runtype> {
-	/** Format of configuration files.  Defaults to 'yaml'. */
+export interface LoadConfigOpts<Schema extends z.ZodTypeAny | undefined = z.ZodTypeAny> {
+	/** Format of configuration files. Defaults to 'yaml'. */
 	format?: ConfigFormat;
 	/** path to config directories */
 	path: string | string[];
-	/** Runtype object that defines the specification for the configuration. */
+	/** Zod schema that defines the specification for the configuration. */
 	schema?: Schema;
-	/** Prefix used to name environment variables.  Default is 'CONFIG_' */
+	/** Prefix used to name environment variables. Default is 'CONFIG_' */
 	envPrefix?: string;
-	/** object path separator key.  Default is '__'. */
+	/** object path separator key. Default is '__'. */
 	envSeparator?: string;
 	/** manually inject defaults */
-	defaults?: Schema extends Runtype ? DeepPartial<Static<Schema>> : any;
+	defaults?: Schema extends z.ZodTypeAny ? DeepPartial<z.infer<Schema>> : any;
 	/**
 	 * override the list of sources to read configuration from.
 	 * Special tokens:
@@ -52,7 +52,7 @@ function getSourceDirectories(opts: Pick<LoadConfigOpts, 'path'>): string[] {
 	return paths;
 }
 
-function getConfigFromEnv(opts: LoadConfigOpts<Runtype | undefined>): any {
+function getConfigFromEnv(opts: LoadConfigOpts<z.ZodTypeAny | undefined>): any {
 	const envOpts: EnvOpts = {
 		envPrefix: opts.envPrefix,
 		envSeparator: opts.envSeparator,
@@ -63,9 +63,12 @@ function getConfigFromEnv(opts: LoadConfigOpts<Runtype | undefined>): any {
 	return result;
 }
 
-export default function load<Schema extends Runtype | undefined>(
-	opts: LoadConfigOpts<Schema>
-): Schema extends Runtype ? Static<Schema> : any {
+/**
+ * Loads configuration files and merges them without validation.
+ * This allows caching raw config for modular loading optimization.
+ * Note: Interpolation still happens per-file before merging.
+ */
+export function loadRawConfig<Schema extends z.ZodTypeAny | undefined>(opts: LoadConfigOpts<Schema>): any {
 	const { format = 'yaml', schema } = opts;
 
 	const directories = getSourceDirectories(opts);
@@ -78,20 +81,37 @@ export default function load<Schema extends Runtype | undefined>(
 	const configs = sourceNames.flatMap((sourceName) => {
 		log(`processing source ${sourceName}`);
 		if (sourceName === 'ENV') {
-			return getConfigFromEnv(opts);
+			return getConfigFromEnv(opts as any);
 		}
 		return directories.map((dir) => {
 			const rawConfig = readConfigSync(path.join(dir, `${sourceName}.${format}`), parser);
-			return interpolateEnv(rawConfig, schema);
+			// Interpolate env vars in each config file BEFORE merging
+			// This allows later layers to "delete" keys and reveal earlier layer values
+			return schema ? interpolateEnv(rawConfig, schema) : rawConfig;
 		});
 	});
 
-	const defaults = opts.defaults ? interpolateEnv(opts.defaults, schema) : {};
+	const defaults = schema ? interpolateEnv(opts.defaults || {}, schema) : (opts.defaults || {});
 
 	const config = deepMerge([defaults, ...configs], opts.mergeOpts);
 
+	return config;
+}
+
+/**
+ * Loads and validates configuration.
+ */
+export default function load<Schema extends z.ZodTypeAny | undefined>(
+	opts: LoadConfigOpts<Schema>
+): Schema extends z.ZodTypeAny ? z.infer<Schema> : any {
+	const { schema } = opts;
+
+	// Load raw config (interpolation happens per-file in loadRawConfig)
+	const config = loadRawConfig(opts);
+
+	// Validate with schema if provided
 	if (schema) {
-		schema.check(config);
+		return schema.parse(config);
 	}
 
 	return config;

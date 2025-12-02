@@ -1,7 +1,17 @@
 module.exports = {
-	extends: ['plugin:jest/recommended'],
 	env: {
-		jest: true,
+		node: true,
+	},
+	globals: {
+		// Vitest globals
+		describe: 'readonly',
+		it: 'readonly',
+		expect: 'readonly',
+		beforeEach: 'readonly',
+		afterEach: 'readonly',
+		beforeAll: 'readonly',
+		afterAll: 'readonly',
+		vi: 'readonly',
 	},
 	rules: {
 		// ts overrides to be a little looser in tests

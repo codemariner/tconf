@@ -1,6 +1,6 @@
-import { Literal, Record, Runtype, Static } from 'runtypes';
+import { z } from 'zod';
 
-import { Formats } from './parsers';
+import { Formats } from './parsers.js';
 
 export type Maybe<T> = T | undefined;
 
@@ -15,26 +15,23 @@ export type DeepPartial<T> = {
 
 export type ConfigFormat = Formats;
 
-export interface EnumUnion extends Runtype<string> {
-	alternatives: Literal<string>[];
-}
+// Type alias for zod schemas
+export type ZodSchema = z.ZodTypeAny;
+
+// Helper to infer type from zod schema (equivalent to runtypes Static<>)
+export type InferSchema<T extends ZodSchema> = z.infer<T>;
 
 /**
  * Supports enumerated keys for records like:
  *
  * ```
- * const SiteId = Union(
- *   Literal('US'),
- *   Literal('CA')
- * );
+ * const SiteId = z.enum(['US', 'CA']);
  *
- * const SiteOption = Record({
- *   url: String,
+ * const SiteOption = z.object({
+ *   url: z.string(),
  * });
  *
- * const SiteConfig = Record({
- *   sites: EnumRecord(SiteId, SiteOption),
- * });
+ * const SiteConfig = EnumRecord(SiteId, SiteOption);
  * ```
  *
  * ```
@@ -45,20 +42,21 @@ export interface EnumUnion extends Runtype<string> {
  *     url: 'http://ca.site.com'
  * ```
  *
- * @param u
- * @param t
+ * @param enumSchema - zod enum schema
+ * @param valueSchema - zod schema for the values
  */
-export function EnumRecord<U extends EnumUnion, V extends Runtype>(
-	u: U,
-	t: V
-): Record<{ [key in Static<typeof u>]: V }, false> {
-	return Record(
-		u.alternatives.reduce(
-			(acc, k) => ({
-				...acc,
-				[k.value]: t,
-			}),
-			{}
-		)
-	) as unknown as Record<{ [key in Static<typeof u>]: V }, false>;
+export function EnumRecord<
+	T extends z.ZodEnum<[string, ...string[]]>,
+	V extends ZodSchema
+>(
+	enumSchema: T,
+	valueSchema: V
+): z.ZodObject<Record<z.infer<T>, V>> {
+	const keys = enumSchema.options as string[];
+	const shape = keys.reduce((acc, key) => {
+		acc[key] = valueSchema;
+		return acc;
+	}, {} as Record<string, V>);
+
+	return z.object(shape) as z.ZodObject<Record<z.infer<T>, V>>;
 }

@@ -65,27 +65,29 @@ npm install tconf
 ```
 
 ### 2. create config specification (optional)
-tconf utilizes [runtypes]() for runtime type checking and as a schema for your config. This represents what you want your config to look like.
+tconf utilizes [zod](https://zod.dev/) for runtime type checking and as a schema for your config. This represents what you want your config to look like.
 
 ```typescript
 // src/config.ts
-import { Boolean, Optional, Record, Static, String } from 'runtypes';
+import { z } from 'zod';
 
-const ApiConfig = Record({  
-    port: number,
-    debug: Optional(Boolean)
-})
-const DatabaseConfig = Record({
-  host: String,
-  username: String,
-  password: Optional(String)
-})
+const ApiConfig = z.object({
+    port: z.number(),
+    debug: z.boolean().optional()
+});
 
-const Config = Record({
+const DatabaseConfig = z.object({
+  host: z.string(),
+  username: z.string(),
+  password: z.string().optional()
+});
+
+const Config = z.object({
     api: ApiConfig,
     database: DatabaseConfig
 });
-export type Config = Static<typeof Config>;
+
+export type Config = z.infer<typeof Config>;
 ```
 
 where the type `Config` is inferred as:
@@ -130,7 +132,7 @@ import { initialize } from 'tconf'
 const tconf = initialize({
   // directories containing configuration files
   path: path.join(__dirname, '..', 'config'),
-  // the runtypes Config object (optional)
+  // the zod Config schema (optional)
   schema: Config,
   // sources to look for config, in this case the files
   // default.yaml, ${NODE_ENV}.yaml, and env.yaml
@@ -168,15 +170,16 @@ Then in your module, register your configuration schema and provide access to yo
 
 ```typescript
 // src/modules/db/config.ts
-import {tconf} from '../../config'
+import { z } from 'zod';
+import { tconf } from '../../config';
 
-const Config = Record({
-    uri: String
-})
+const Config = z.object({
+    uri: z.string()
+});
 
-const config = tconf.register('database', Config); // Static<typeof Config>
+const config = tconf.register('database', Config); // z.infer<typeof Config>
 
-export default config
+export default config;
 
 ```
 

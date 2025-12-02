@@ -1,18 +1,23 @@
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
 import { fail } from 'assert';
 import path from 'path';
 
-import { Record, String } from 'runtypes';
+import { z } from 'zod';
 
-import { initialize } from '../src';
+import { initialize } from '../src/index.js';
 
-import { tconf } from './fixtures/modules/config';
+import { tconf } from './fixtures/modules/config/index.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 describe('tconf modular support', () => {
 	it('should allow for registering configurations', () => {
 		const config = tconf.register(
 			'crypto',
-			Record({
-				key: String,
+			z.object({
+				key: z.string(),
 			})
 		);
 
@@ -25,13 +30,12 @@ describe('tconf modular support', () => {
 		try {
 			tconf.register(
 				'crypto',
-				Record({
-					key: String,
+				z.object({
+					key: z.string(),
 				})
 			);
 			fail('should have failed');
 		} catch (e) {
-			// eslint-disable-next-line jest/no-conditional-expect
 			expect(e).toBeTruthy();
 		}
 	});

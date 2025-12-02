@@ -1,4 +1,4 @@
-import { deepMerge } from '../src/util';
+import { deepMerge } from '../src/util.js';
 
 describe('util', () => {
 	const data = [

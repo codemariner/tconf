@@ -2,6 +2,44 @@
 
 All notable changes to this project will be documented in this file.
 
+## [4.0.0] - 2025-12-02
+
+### Breaking Changes
+
+**This is a major release with breaking changes. Please see [MIGRATION.md](./MIGRATION.md) for a complete migration guide.**
+
+* **Pure ESM Package**: tconf is now a pure ESM package. You must use `import` instead of `require()`. Your project must include `"type": "module"` in package.json or use `.mjs` file extensions.
+
+* **Runtypes → Zod**: Replaced runtypes with zod for schema validation and type inference.
+  - `Record({})` → `z.object({})`
+  - `Optional(Type)` → `Type.optional()`
+  - `Static<typeof T>` → `z.infer<T>`
+  - See [MIGRATION.md](./MIGRATION.md) for complete conversion guide
+
+* **Node.js 20+**: Minimum Node.js version increased from 16 to 20.
+
+* **Jest → Vitest**: Test framework migrated from Jest to Vitest (internal change, does not affect library users).
+
+### Features
+
+* **Performance Optimization**: Modular configuration loading optimized - files are now loaded once and cached. The `register()` method re-validates cached configuration without re-reading files from disk.
+
+* **Hybrid Coercion System**: Automatic type coercion now uses zod's built-in coercion for primitives (`z.coerce.number()`, `z.coerce.boolean()`) with custom logic for complex types (Date, RegExp, arrays). Date parsing uses JavaScript's native `new Date()` constructor.
+
+* **Better Type Inference**: Improved type safety with zod's TypeScript-first schema validation and automatic type inference.
+
+### Technical Details
+
+* Implemented zod schema introspection API (equivalent to runtypes reflection API) to traverse schemas and extract type information for environment variable coercion.
+
+* Fixed template variable interpolation to happen per-file before merging, allowing undefined templates to reveal earlier layer values (preserves default value fallback behavior).
+
+* Full ESM support with proper module resolution using `"moduleResolution": "bundler"`.
+
+### Migration
+
+See [MIGRATION.md](./MIGRATION.md) for step-by-step migration instructions from v3.x to v4.0.0.
+
 ## [3.1.0]
 
 ### Features

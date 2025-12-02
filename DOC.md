@@ -91,26 +91,24 @@ The resulting configuration object loaded while `NODE_ENV=production`:
 
 Notable dependencies:
 
-* runtypes - The schema used to validate configuration values is based on [runtypes](https://github.com/pelotom/runtypes). Not all possible type specifications are supported (YMMV). However, providing a runtype schema is not required.
+* zod - The schema used to validate configuration values is based on [zod](https://zod.dev/). Zod provides TypeScript-first schema validation with automatic type inference. Providing a zod schema is not required.
 
 
 ## API
 
-### initialize<T extends Runtype>(opts:TconfOpts<T>):Tconf<T>
+### initialize<T extends z.ZodTypeAny>(opts:TconfOpts<T>):Tconf<T>
 
 Synchronously loads configurations based on provided options and returns an instance of Tconf.
 
 ```typescript
 import path from 'path';
+import { z } from 'zod';
+import { initialize } from 'tconf';
 
-import { Number, Record, String } from 'runtypes';
-import {initialize} from 'tconf';
-
-const schema = Record({
-    host: String,
-}).And(Partial({
-    port: Number,
-}));
+const schema = z.object({
+    host: z.string(),
+    port: z.number().optional(),
+});
 
 const tconf = initialize({
     path: path.join(__dirname, '..', 'config'),
@@ -156,16 +154,18 @@ With the given example above with multiple directories, files will be iterated o
 6. `config/secret/local.yaml`
 
 ##### `format` (Optional)
-Defaults to `yaml`.  Possible values `'yaml'` or `'json'`.
+Defaults to `yaml`.  Possible values `'yaml'`, `'json'`, or `'json5'`.
 
-##### `schema` (Optional) - Runtypes object.
+##### `schema` (Optional) - Zod schema object.
 If provided, validation and value coercion will be performed. Supported
 types:
-  - `number`
-  - `boolean`
-  - `Date`
-  - `RegExp`
-  - `Array<string|number|boolean|Date|RegExp>`
+  - `z.string()`
+  - `z.number()`
+  - `z.boolean()`
+  - `z.date()`
+  - `z.instanceof(RegExp)`
+  - `z.array()` of any of the above types
+  - `z.object()`, `z.union()`, `z.enum()`, `z.literal()`, and other zod types
 
 ##### `envPrefix` (Optional)
 Prefix used to identify environment variables.  Default: `'CONFIG_'`
@@ -270,8 +270,8 @@ const config = tconf.get()
 
 The above will result in an untyped config object that merges all configurations found under two different directories.
 
-### Tconf#register\<T extends Runtype\>(name:string, schema:T):Static\<typeof T\>
-Registers a named configuration with associated schema. This will load, validate, and return the schema synchronously. This allows application modules to have their configuration managed by a common tconf instance.
+### Tconf#register\<T extends z.ZodTypeAny\>(name:string, schema:T):z.infer\<T\>
+Registers a named configuration with associated schema. This will re-validate the cached configuration with the expanded schema and return the typed configuration synchronously. This allows application modules to have their configuration managed by a common tconf instance without re-reading files from disk.
 
 ## Modular Configuration
 
@@ -282,35 +282,35 @@ First, initialize your global configuration. This will establish the common loca
 ```typescript
 // src/config.ts
 import path from 'path';
-import {initialize} from 'tconf';
-import { Number, Record } from 'runtypes';
+import { z } from 'zod';
+import { initialize } from 'tconf';
 
-const Config = Record({
-    api: Record({
-        port: Number
+const Config = z.object({
+    api: z.object({
+        port: z.number()
     })
-})
+});
 
 // exporting this so modules can register their configuration
 export const tconf = initialize({
-    path: path.join(__dirname, '..', 'config),
+    path: path.join(__dirname, '..', 'config'),
     schema: Config
-})
+});
 
-export default tconf.get(); // Static<typeof Config>
+export default tconf.get(); // z.infer<typeof Config>
 ```
 
 Then in your module, register your local schema against a unique name.
 ```typescript
 // src/modules/crypto/config.ts
-import { tconf } from '../../config'
-import { Record, String } from 'runtypes';
+import { z } from 'zod';
+import { tconf } from '../../config';
 
-const Schema = Record({
-    key: String
-})
+const Schema = z.object({
+    key: z.string()
+});
 
-const config = tconf.register('crypto', Schema); // Static<typeof Schema>
+const config = tconf.register('crypto', Schema); // z.infer<typeof Schema>
 
 export default config;
 ```
@@ -326,9 +326,7 @@ crypto: # <-- module config
   key: 6K0CjNioiXER0qlXRDrOozWgbFZ9LmG/nnOjl0s4NqM=
 ```
 
-{% note %}
-**Note:** Tconf will provide all configuration it finds and does not filter any out when requesting from the top level `tconf.get()`. However, when strictly typing with Runtypes and TypeScript, other module configuration types are not exposed. In this way, your application code can act as if it doesn't exist though it literally does.
-{% endnote %}
+**Note:** Tconf will provide all configuration it finds and does not filter any out when requesting from the top level `tconf.get()`. However, when strictly typing with Zod and TypeScript, other module configuration types are not exposed. In this way, your application code can act as if it doesn't exist though it literally does.
 
 
 ## Environment Variable Mapping

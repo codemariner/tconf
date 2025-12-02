@@ -3,9 +3,9 @@
 
 import fs from 'fs';
 
-import baseLog from './log';
-import { ConfigParser } from './parsers';
-import { ConfigurationError } from './util';
+import baseLog from './log.js';
+import { ConfigParser } from './parsers.js';
+import { ConfigurationError } from './util.js';
 
 const log = baseLog.extend('file');
 
