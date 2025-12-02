@@ -16,7 +16,7 @@ All notable changes to this project will be documented in this file.
   - `Static<typeof T>` → `z.infer<T>`
   - See [MIGRATION.md](./MIGRATION.md) for complete conversion guide
 
-* **Node.js 20+**: Minimum Node.js version increased from 16 to 20.
+* **Node.js 18+**: Minimum Node.js version increased from 16 to 18.
 
 * **Jest → Vitest**: Test framework migrated from Jest to Vitest (internal change, does not affect library users).
 
@@ -24,11 +24,20 @@ All notable changes to this project will be documented in this file.
 
 * **Bundled Zod 4**: tconf now includes Zod 4.x as a direct dependency and exports it for use via `import { z } from 'tconf/zod'`. This ensures version compatibility and eliminates peer dependency conflicts. Users should import Zod from `tconf/zod` rather than installing it separately.
 
+* **Custom Type Extensions**: Added tconf-specific extensions to Zod:
+  - `z.regexp()` - Validates and coerces to `RegExp` objects from string patterns
+  - `z.url()` - Validates and coerces to `URL` objects (overrides Zod's built-in string URL validator)
+  - Import from `tconf/zod` to access these extensions
+
 * **Performance Optimization**: Modular configuration loading optimized - files are now loaded once and cached. The `register()` method re-validates cached configuration without re-reading files from disk.
 
-* **Hybrid Coercion System**: Automatic type coercion now uses zod's built-in coercion for primitives (`z.coerce.number()`, `z.coerce.boolean()`) with custom logic for complex types (Date, RegExp, arrays). Date parsing uses JavaScript's native `new Date()` constructor.
+* **Hybrid Coercion System**: Automatic type coercion now uses zod's built-in coercion for primitives (`z.coerce.number()`, `z.coerce.boolean()`) with custom logic for complex types (Date, RegExp, URL, arrays). Date parsing uses JavaScript's native `new Date()` constructor.
 
 * **Better Type Inference**: Improved type safety with zod's TypeScript-first schema validation and automatic type inference.
+
+* **Enhanced Documentation**: Completely rewritten documentation:
+  - README.md now concise and example-focused for quick starts
+  - DOC.md provides comprehensive reference guide with all features, API documentation, examples, and troubleshooting
 
 ### Technical Details
 
