@@ -1,5 +1,6 @@
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
+
 import { z } from 'zod';
 
 import { initialize } from '../../../../src/index.js';

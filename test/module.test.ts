@@ -1,7 +1,6 @@
 import { fileURLToPath } from 'url';
-import { dirname } from 'path';
+import path, { dirname } from 'path';
 import { fail } from 'assert';
-import path from 'path';
 
 import { z } from 'zod';
 

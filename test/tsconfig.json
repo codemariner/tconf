@@ -3,7 +3,9 @@
 	"compilerOptions": {
 		"noEmit": true,
 		"rootDir": "..",
-		"lib": ["esnext", "dom"]
+		"lib": ["esnext", "dom"],
+		"types": ["vitest/globals"],
+		"typeRoots": ["../node_modules/@types", "../node_modules"]
 	},
 	"include": ["**/*", "../src/**/*"]
 }

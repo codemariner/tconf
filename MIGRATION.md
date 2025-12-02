@@ -277,7 +277,7 @@ Environment variable coercion works the same way but now uses zod's type system:
 - `z.string()` - No coercion needed
 - `z.number()` - Coerces string to number
 - `z.boolean()` - Coerces "true"/"false" strings
-- `z.date()` - Parses date strings (including MM-DD-YYYY format)
+- `z.date()` - Parses date strings
 - `z.instanceof(RegExp)` - Creates RegExp from string pattern
 - `z.array()` - Splits comma-separated values
 

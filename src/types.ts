@@ -4,7 +4,7 @@ import { Formats } from './parsers.js';
 
 export type Maybe<T> = T | undefined;
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
+ 
 export type DeepPartial<T> = {
 	[P in keyof T]?: T[P] extends (infer U)[]
 		? DeepPartial<U>[]

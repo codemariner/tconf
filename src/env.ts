@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+ 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { z } from 'zod';
 
@@ -149,7 +149,7 @@ function coerce(envVar: string, value: string, valueType: z.ZodTypeAny | undefin
 
 	// Handle union types - try each alternative
 	if (unwrapped instanceof z.ZodUnion) {
-		const options = (unwrapped as any)._def.options;
+		const {options} = (unwrapped as any)._def;
 		for (const option of options) {
 			const unionValue = coerce(envVar, value, option);
 			if (unionValue !== undefined) {
@@ -188,8 +188,8 @@ function coerce(envVar: string, value: string, valueType: z.ZodTypeAny | undefin
 		// Use zod's built-in coerce for consistency
 		try {
 			return z.coerce.number().parse(value);
-		} catch {
-			logEnv(`Unable to coerce "${value}" to number for env var "${envVar}"`);
+		} catch (error) {
+			logEnv(`Unable to coerce "${value}" to number for env var "${envVar}": ${error}`);
 			return undefined;
 		}
 	}
@@ -198,8 +198,8 @@ function coerce(envVar: string, value: string, valueType: z.ZodTypeAny | undefin
 		// Use zod's built-in coerce
 		try {
 			return z.coerce.boolean().parse(value);
-		} catch {
-			logEnv(`Unable to coerce "${value}" to boolean for env var "${envVar}"`);
+		} catch (error) {
+			logEnv(`Unable to coerce "${value}" to boolean for env var "${envVar}": ${error}`);
 			return undefined;
 		}
 	}
@@ -221,8 +221,8 @@ function coerce(envVar: string, value: string, valueType: z.ZodTypeAny | undefin
 		if (cls === RegExp) {
 			try {
 				return new RegExp(value);
-			} catch (e) {
-				logEnv(`Unable to coerce "${value}" to RegExp for env var "${envVar}"`);
+			} catch (error) {
+				logEnv(`Unable to coerce "${value}" to RegExp for env var "${envVar}": ${error}`);
 				return undefined;
 			}
 		}
@@ -328,10 +328,10 @@ export function interpolateEnv(config: any, schema: unknown, fieldPath: string[]
 				const valueType = getValueType(updatedPath, schema as z.ZodTypeAny);
 				const envValue = getEnvValue(value) ?? '';
 				if (!envValue) {
-					// eslint-disable-next-line no-param-reassign
+					 
 					delete config[key];
 				} else {
-					// eslint-disable-next-line no-param-reassign
+					 
 					config[key] = coerce(key, envValue, valueType);
 				}
 			}

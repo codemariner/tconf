@@ -2,7 +2,7 @@
 
 import { z } from 'zod';
 
-import load, { loadRawConfig, LoadConfigOpts } from './load-config.js';
+import load, { LoadConfigOpts, loadRawConfig } from './load-config.js';
 import { DeepPartial } from './types.js';
 
 export { DEFAULT_PREFIX, DEFAULT_SEPARATOR } from './env.js';

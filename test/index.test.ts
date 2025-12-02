@@ -1,6 +1,5 @@
 import { fileURLToPath } from 'url';
-import { dirname } from 'path';
-import path from 'path';
+import path, { dirname } from 'path';
 
 import { z } from 'zod';
 
@@ -226,6 +225,26 @@ describe('getConfig', () => {
 		});
 	});
 
+	it('should coerce union types from environment variables', () => {
+		process.env.CONFIG_port = '3000';
+		process.env.CONFIG_enabled = 'true';
+		process.env.CONFIG_mode = 'development';
+		const result = load({
+			path: '',
+			schema: z.object({
+				// Put more specific type first in union - tries in order
+				port: z.union([z.number(), z.string()]),
+				enabled: z.union([z.boolean(), z.literal('auto')]),
+				mode: z.union([z.literal('production'), z.literal('development'), z.literal('test')]),
+			}),
+		});
+		expect(result).toMatchObject({
+			port: 3000, // coerced to number (tries z.number() first)
+			enabled: true, // coerced to boolean (tries z.boolean() first)
+			mode: 'development', // matched literal
+		});
+	});
+
 	it('should allow for environment overrides of intersect types', () => {
 		process.env.CONFIG_foo = 'foo';
 		process.env.CONFIG_bar = 'bar';
@@ -246,6 +265,29 @@ describe('getConfig', () => {
 		expect(result).toMatchObject({
 			foo: 'foo',
 			bar: 'bar',
+		});
+	});
+
+	it('should handle environment overrides with z.intersection', () => {
+		process.env.CONFIG_host = 'localhost';
+		process.env.CONFIG_port = '8080';
+		process.env.CONFIG_debug = 'true';
+		const result = load({
+			path: '',
+			schema: z.intersection(
+				z.object({
+					host: z.string(),
+				}),
+				z.object({
+					port: z.number(),
+					debug: z.boolean(),
+				})
+			),
+		});
+		expect(result).toMatchObject({
+			host: 'localhost',
+			port: 8080,
+			debug: true,
 		});
 	});
 
