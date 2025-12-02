@@ -22,7 +22,7 @@
 		"url": "https://github.com/codemariner/tconf"
 	},
 	"engines": {
-		"node": ">=20.0.0"
+		"node": ">=18.0.0"
 	},
 	"config": {
 		"prettier": "**/*.{graphql,js,json,css,jsx,mjs,ts,tsx,yaml,yml}"

@@ -88,7 +88,7 @@ npm install tconf
 ```
 
 **Requirements:**
-- Node.js >= 20
+- Node.js >= 18
 - TypeScript >= 5 (optional but recommended)
 
 ---
@@ -1824,7 +1824,7 @@ import config from './config.js'; // Note .js extension
 
 8. **Node version:**
 
-v4 requires Node.js >= 20.
+v4 requires Node.js >= 18.
 
 ---
 

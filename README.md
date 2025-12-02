@@ -167,7 +167,7 @@ const config = tconf.get();
 
 ## Requirements
 
-- Node.js >= 20
+- Node.js >= 18
 - TypeScript >= 5 (optional, but recommended)
 
 ## License
