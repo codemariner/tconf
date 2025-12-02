@@ -1,204 +1,175 @@
 ![tconf](https://user-images.githubusercontent.com/33014/144646320-bb6cc527-18d6-4889-998e-e37fdc849170.png)
 
----
 [![Version](https://img.shields.io/npm/v/tconf.svg)](https://npmjs.org/package/tconf) [![Downloads/month](https://img.shields.io/npm/dm/tconf.svg)](https://npmjs.org/package/tconf) [![License](https://img.shields.io/npm/l/tconf.svg)](https://github.com/codemariner/tconf/blob/master/package.json)
 
-Adapting [12 factor app configuration](https://12factor.net/config) to a type checked, application focused world view.
+Type-safe, hierarchical configuration for Node.js applications with automatic environment variable coercion.
 
-## Features
-- Hierarchical configuration - values are merged from multiple sources.
-- Supported file formats: yaml, json, json5
-- Environment specific configuration via NODE_ENV
-- Runtime type validation.
-- Support for modulare configuration.
-- Type coercion of environment variables - string values can be converted to:
-  - `number`
-  - `boolean`
-  - `Date`
-  - `RegExp`
-  - `Array<number|boolean|Date|RegExp>`
-- All values can implicitly be configured by environment variables.
+## Quick Start
 
-## Overview
-
-[12 factor app](https://12factor.net/config) guidelines for configuration promotes "strict separation of config from code" through the use of environment variables. While this is beneficial from a deployment perspective, how this is implemented in many cases falls short of adequately supporting complex configuration within an application.
-
-Typical approaches involve referencing `process.env` directly, perhaps with additional support through a library like [dotenv](https://github.com/motdotla/dotenv). These applications often start by working with a flat list of variables.
-
-```typescript
-const {
-    DB_HOST,
-    DB_USERNAME,
-    DB_PASSWORD,
-    // ...
-} = process.env;
-```
-As configuration becomes more complex, this flat structure becomes cumbersome to deal with and to reason about. To combat this, developers will organize their configuration into a hierarchical structure. Having to map from a flat list of env vars into a desired shape, performing type coercion from env var strings, and executing validation is often an exercise left for the developer. For example, a desired end state for your configuration might look like:
-```typescript
-api: {
-  baseUrl: string
-  port?: number
-  debugMode?: boolean
-  auth: {
-    secret: string
-  }
-}
-database: {
-  host: string
-  username: string
-  password: string
-  driverOpts?: {
-    connectionTimeout?: number
-    queryTimeout?: number
-  }
-}
-...
-```
-Representing this as a flat list of env vars is **not** an effective way to work with your configuration. _tconf_ addresses this by allowing authors to specify the desired shape and type of their configuration and performs mapping and coercion from environment variables automatically.
-
-
-## Getting Started
-
-### 1. install
-```
+```bash
 npm install tconf
 ```
 
-> **Note:** tconf includes Zod 4 as a bundled dependency. You should import Zod from `tconf/zod` to ensure version compatibility:
-> ```typescript
-> import { z } from 'tconf/zod';
-> ```
-
-### 2. create config specification (optional)
-tconf utilizes [zod](https://zod.dev/) for runtime type checking and as a schema for your config. This represents what you want your config to look like.
+**Define your schema:**
 
 ```typescript
 // src/config.ts
 import { z } from 'tconf/zod';
+import { initialize } from 'tconf';
 
-const ApiConfig = z.object({
+const Config = z.object({
+  api: z.object({
     port: z.number(),
-    debug: z.boolean().optional()
+    debug: z.boolean().optional(),
+  }),
+  database: z.object({
+    host: z.string(),
+    password: z.string(),
+  }),
 });
 
-const DatabaseConfig = z.object({
-  host: z.string(),
-  username: z.string(),
-  password: z.string().optional()
-});
-
-const Config = z.object({
-    api: ApiConfig,
-    database: DatabaseConfig
-});
-
-export type Config = z.infer<typeof Config>;
-```
-
-where the type `Config` is inferred as:
-```typescript
-interface Config {
-  api: {
-    port: number
-    debug?: boolean
-  },
-  database: {
-    host: string
-    username: string
-    password?: string
-  }
-}
-```
-
-
-If you aren't using TypeScript or don't care about having your configuration statically typed, coerced, and validated then you can skip this.
-
-### 3. map to env var names (optional)
-Create a config file that defines a mapping of env vars. tconf provides support for template variables that can be used for env var interpolation (similar to [docker compose](https://docs.docker.com/compose/environment-variables/)) and also allows for assigning default values.
-
-```yaml
-# config/env.yaml
-api:
-  port: ${API_PORT:3000}
-database:
-  host: ${DB_HOST:"db.domain.com"}
-  username: ${DB_USER}
-  password: ${DB_PASSWORD}
-```
-
-This is also optional. _tconf_ natively supports [configuration mapping from environment variables](./DOC.md#environment-variable-mapping) following a path naming convention. (you can set *any* configuration value using an environment variable). Use interpolation variables in your config only if you need to map from some specifically named variable that doesn't match your config.
-
-### 4. load your configuration
-
-```typescript
-// src/config.ts
-import { initialize } from 'tconf'
-
-const tconf = initialize({
-  // directories containing configuration files
-  path: path.join(__dirname, '..', 'config'),
-  // the zod Config schema (optional)
+export const tconf = initialize({
+  path: './config',
   schema: Config,
-  // sources to look for config, in this case the files
-  // default.yaml, ${NODE_ENV}.yaml, and env.yaml
-  sources: ['default', 'NODE_ENV', 'env'],
-})
-export default tconf.get();
-
-```
-_tconf_ will import configurations from the defined sources (or a set of defaults) from the [specified directories](./DOC.md#path-required), and merge the values in the order of the [specified sources](./DOC.md#sources-optional).
-
-### 5. use it
-```typescript
-// src/foo.ts
-import config from './config'
-import dbConnect from './db'
-
-const conn = await dbConnect(config.database);
-```
-
-### 6. use in isolated modules
-Within larger applications, you may want to isolate certain areas of your code into modules. It may make sense to isolate your configuration to such modules as well.
-
-First, expose your initialized Tconf instance:
-```typescript
-// src/config.ts
-import { initialize } from 'tconf'
-
-export const tconf = initialize({ // <-- export the instance
-    // ...
-})
-export default tconf.get(); // exports the configuration
-```
-
-Then in your module, register your configuration schema and provide access to your module.
-
-```typescript
-// src/modules/db/config.ts
-import { z } from 'tconf/zod';
-import { tconf } from '../../config';
-
-const Config = z.object({
-    uri: z.string()
 });
 
-const config = tconf.register('database', Config); // z.infer<typeof Config>
-
-export default config;
-
+export default tconf.get();
 ```
 
-The configuration will be sourced the same way, but you'll need to add your configuration under the registered name.
+**Create config files:**
+
 ```yaml
 # config/default.yaml
 api:
-  # //...
-
+  port: 3000
 database:
-  uri: postgresql://host.com:5432/appdb
+  host: localhost
+  password: dev-password
 ```
 
+```yaml
+# config/production.yaml
+database:
+  host: prod-db.example.com
+  password: ${DB_PASSWORD}
+```
+
+**Use your config:**
+
+```typescript
+import config from './config';
+
+console.log(config.api.port); // Type-safe access
+```
+
+**Override with environment variables:**
+
+```bash
+# Automatic path-based mapping
+CONFIG_api__port=8080 node app.js
+
+# Or template interpolation
+DB_PASSWORD=secret NODE_ENV=production node app.js
+```
+
+## Key Features
+
+- **Type-Safe**: Full TypeScript support with Zod schema validation
+- **Hierarchical Merging**: Combine `default.yaml` → `${NODE_ENV}.yaml` → env vars → `local.yaml`
+- **Auto Type Coercion**: Environment variables automatically converted to `number`, `boolean`, `Date`, `RegExp`, `URL`, and arrays
+- **Multiple Formats**: YAML, JSON, JSON5
+- **Modular**: Register isolated configuration for different modules
+- **12-Factor Compatible**: Supports environment variable configuration
+
+## Example: Type Coercion
+
+Environment variables are automatically coerced based on your schema (no need to add `.coerce`):
+
+```typescript
+const Config = z.object({
+  port: z.number(),
+  enabled: z.boolean(),
+  created: z.date(),
+  apiUrl: z.url(),
+  pattern: z.regexp(),
+});
+
+// Environment variables
+// CONFIG_port=3000
+// CONFIG_enabled=true
+// CONFIG_created=2024-01-01T00:00:00Z
+// CONFIG_apiUrl=https://api.example.com
+// CONFIG_pattern=^foo-.*
+
+const config = tconf.get();
+config.port;     // 3000 (number)
+config.enabled;  // true (boolean)
+config.created;  // Date object
+config.apiUrl;   // URL object
+config.pattern;  // RegExp object
+```
+
+## Example: Modular Configuration
+
+```typescript
+// src/modules/auth/config.ts
+import { z } from 'tconf/zod';
+import { tconf } from '../../config';
+
+const AuthConfig = z.object({
+  secret: z.string(),
+  expiresIn: z.number(),
+});
+
+export default tconf.register('auth', AuthConfig);
+```
+
+```yaml
+# config/default.yaml
+auth:
+  secret: dev-secret
+  expiresIn: 3600
+```
 
 ## Documentation
 
-Please see [the documentation](./DOC.md) for more detailed information and capabilities of _tconf_.
+See [full documentation](./DOC.md) for:
+- Complete API reference
+- Environment variable mapping strategies
+- Merge behavior customization
+- Advanced usage patterns
+
+## Why tconf?
+
+Traditional environment variable approaches fall short for complex applications:
+
+**Before:**
+```typescript
+const {
+  DB_HOST,
+  DB_PORT,
+  DB_USER,
+  DB_PASS,
+  API_PORT,
+  API_DEBUG,
+  // ... dozens more
+} = process.env;
+
+const dbPort = parseInt(DB_PORT || '5432'); // Manual coercion
+const apiDebug = API_DEBUG === 'true';      // Manual coercion
+```
+
+**With tconf:**
+```typescript
+const config = tconf.get();
+// Hierarchical, typed, validated, and coerced automatically
+```
+
+## Requirements
+
+- Node.js >= 20
+- TypeScript >= 5 (optional, but recommended)
+
+## License
+
+MIT
