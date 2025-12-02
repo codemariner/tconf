@@ -1,4 +1,3 @@
- 
 import { getEnvValue } from '../src/env.js';
 
 describe('env', () => {

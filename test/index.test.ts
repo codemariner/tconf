@@ -41,7 +41,7 @@ describe('getConfig', () => {
 					US: { url: 'https://site.us' },
 					CA: { url: 'https://site.ca' },
 				},
-			})
+			}),
 		);
 	});
 
@@ -62,7 +62,7 @@ describe('getConfig', () => {
 					US: { url: 'https://site.us' },
 					CA: { url: 'https://site.ca' },
 				},
-			})
+			}),
 		);
 	});
 
@@ -82,7 +82,7 @@ describe('getConfig', () => {
 					US: { url: 'https://site.us' },
 					CA: { url: 'https://site.ca' },
 				},
-			})
+			}),
 		);
 	});
 
@@ -101,7 +101,7 @@ describe('getConfig', () => {
 					US: { url: 'https://site.us.dev' },
 					CA: { url: 'https://site.ca.dev' },
 				},
-			})
+			}),
 		);
 	});
 
@@ -121,7 +121,7 @@ describe('getConfig', () => {
 					US: { url: 'https://site.us.dev' },
 					CA: { url: 'https://site.ca.dev' },
 				},
-			})
+			}),
 		);
 	});
 
@@ -163,7 +163,7 @@ describe('getConfig', () => {
 					US: { url: 'https://site.us.dev' },
 					CA: { url: 'https://site.ca.dev' },
 				},
-			})
+			}),
 		);
 	});
 
@@ -188,7 +188,7 @@ describe('getConfig', () => {
 						url: 'https://us.com',
 					},
 				},
-			})
+			}),
 		);
 	});
 
@@ -200,7 +200,7 @@ describe('getConfig', () => {
 				schema: z.object({
 					foo: z.instanceof(Foo),
 				}),
-			})
+			}),
 		).toThrow();
 	});
 
@@ -296,7 +296,7 @@ describe('getConfig', () => {
 				schema: z.object({
 					environment: z.enum(['development', 'staging', 'production']),
 				}),
-			})
+			}),
 		).toThrow();
 	});
 
@@ -314,7 +314,7 @@ describe('getConfig', () => {
 						.object({
 							bar: z.string(),
 						})
-						.partial()
+						.partial(),
 				),
 		});
 		expect(result).toMatchObject({
@@ -336,7 +336,7 @@ describe('getConfig', () => {
 				z.object({
 					port: z.number(),
 					debug: z.boolean(),
-				})
+				}),
 			),
 		});
 		expect(result).toMatchObject({
@@ -355,7 +355,7 @@ describe('getConfig', () => {
 				z.enum(['US', 'CA']),
 				z.object({
 					foo: z.string(),
-				})
+				}),
 			),
 		});
 		expect(result).toMatchObject({
@@ -379,7 +379,7 @@ describe('getConfig', () => {
 					US: { url: 'https://site.us.dev' },
 					CA: { url: 'https://site.ca.dev' },
 				},
-			})
+			}),
 		);
 	});
 
@@ -399,7 +399,7 @@ describe('getConfig', () => {
 					US: { url: 'https://site.us.dev' },
 					CA: { url: 'https://site.ca.dev' },
 				},
-			})
+			}),
 		);
 	});
 
@@ -419,7 +419,7 @@ describe('getConfig', () => {
 					US: { url: 'https://site.us.dev.json' },
 					CA: { url: 'https://site.ca.dev.json' },
 				},
-			})
+			}),
 		);
 	});
 
@@ -439,7 +439,7 @@ describe('getConfig', () => {
 			load({
 				path: path.join(__dirname, 'fixtures', 'config', 'invalid-config'),
 				schema: spec,
-			})
+			}),
 		).toThrow();
 	});
 
@@ -448,7 +448,7 @@ describe('getConfig', () => {
 			load({
 				path: path.join(__dirname, 'fixtures', 'config', 'invalid-config'),
 				schema: spec,
-			})
+			}),
 		).toThrow();
 	});
 
@@ -458,7 +458,7 @@ describe('getConfig', () => {
 				path: path.join(__dirname, 'fixtures', 'config', 'invalid-parse'),
 				format: 'json',
 				schema: spec,
-			})
+			}),
 		).toThrow(/error.*parsing/i);
 	});
 
@@ -468,7 +468,7 @@ describe('getConfig', () => {
 				path: path.join(__dirname, 'fixtures', 'config', 'invalid-parse'),
 				format: 'json',
 				schema: spec,
-			})
+			}),
 		).toThrow(/error.*parsing/i);
 	});
 
@@ -499,7 +499,7 @@ describe('getConfig', () => {
 				schema: z.object({
 					pattern: z.regexp(),
 				}),
-			})
+			}),
 		).toThrow();
 	});
 
@@ -532,7 +532,7 @@ describe('getConfig', () => {
 				schema: z.object({
 					endpoint: z.url(),
 				}),
-			})
+			}),
 		).toThrow();
 	});
 
@@ -550,7 +550,7 @@ describe('getConfig', () => {
 		expect(result).toMatchObject<typeof result>(
 			expect.objectContaining({
 				arrayValue: ['joe', 'smith'],
-			})
+			}),
 		);
 	});
 
@@ -609,7 +609,7 @@ describe('getConfig', () => {
 					US: { url: 'foo-us' },
 					CA: { url: 'foo-ca' },
 				},
-			})
+			}),
 		);
 	});
 
@@ -635,7 +635,7 @@ describe('getConfig', () => {
 					US: { url: 'https://site.us.dev' },
 					CA: { url: 'https://site.ca.dev' },
 				},
-			})
+			}),
 		);
 	});
 
@@ -660,7 +660,7 @@ describe('getConfig', () => {
 				database: {
 					host: 'database.server.json5',
 				},
-			})
+			}),
 		);
 	});
 });

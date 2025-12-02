@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
- 
 
 import fs from 'fs';
 
@@ -22,12 +21,12 @@ export function readConfigSync(filePath: string, parser: ConfigParser): any {
 	} catch (e) {
 		log(`error parsing configuration file ${filePath}`, e);
 		throw new ConfigurationError(
-			`Error while parsing configuration file ${filePath}: ${(e as any).message}`
+			`Error while parsing configuration file ${filePath}: ${(e as any).message}`,
 		);
 	}
 	if (typeof data !== 'object' || Array.isArray(data)) {
 		throw new ConfigurationError(
-			`Invalid configuration from ${filePath}. Configuration should be an object.`
+			`Invalid configuration from ${filePath}. Configuration should be an object.`,
 		);
 	}
 	return data;

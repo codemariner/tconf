@@ -18,7 +18,7 @@ const DatabaseConfig = z
 				port: z.number(),
 				debug: z.boolean(),
 			})
-			.partial()
+			.partial(),
 	);
 
 const SiteId = z.enum(['US', 'CA']);

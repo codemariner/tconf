@@ -16,7 +16,7 @@ describe('tconf modular support', () => {
 			'crypto',
 			z.object({
 				key: z.string(),
-			})
+			}),
 		);
 
 		expect(config).toMatchObject({
@@ -30,7 +30,7 @@ describe('tconf modular support', () => {
 				'crypto',
 				z.object({
 					key: z.string(),
-				})
+				}),
 			);
 			fail('should have failed');
 		} catch (e) {

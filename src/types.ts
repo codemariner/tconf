@@ -4,16 +4,15 @@ import { Formats } from './parsers.js';
 
 export type Maybe<T> = T | undefined;
 
-
 export type DeepPartial<T> = T extends Date | RegExp | URL
 	? T
 	: {
 			[P in keyof T]?: T[P] extends (infer U)[]
 				? DeepPartial<U>[]
 				: T[P] extends ReadonlyArray<infer U>
-				? ReadonlyArray<DeepPartial<U>>
-				: DeepPartial<T[P]>;
-	  };
+					? ReadonlyArray<DeepPartial<U>>
+					: DeepPartial<T[P]>;
+		};
 
 export type ConfigFormat = Formats;
 
@@ -49,7 +48,7 @@ export type InferSchema<T extends ZodSchema> = z.infer<T>;
  */
 export function EnumRecord<T extends z.ZodEnum<any>, V extends ZodSchema>(
 	enumSchema: T,
-	valueSchema: V
+	valueSchema: V,
 ): z.ZodObject<any> {
 	const keys = enumSchema.options as string[];
 	const shape = keys.reduce(
@@ -57,7 +56,7 @@ export function EnumRecord<T extends z.ZodEnum<any>, V extends ZodSchema>(
 			acc[key] = valueSchema;
 			return acc;
 		},
-		{} as Record<string, V>
+		{} as Record<string, V>,
 	);
 
 	return z.object(shape);

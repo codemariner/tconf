@@ -1,4 +1,3 @@
- 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import deepmerge from 'deepmerge';
 import { z } from 'zod';
@@ -7,7 +6,6 @@ export interface MergeOpts {
 	arrayMergeMethod: 'combine' | 'overwrite';
 }
 
- 
 const combineMerge = (target: any[], source: any[], options: any): any[] => {
 	const destination = target.slice();
 
@@ -23,7 +21,6 @@ const combineMerge = (target: any[], source: any[], options: any): any[] => {
 	return destination;
 };
 
-
 function overwriteMerge<T>(_destinationArray: T[], sourceArray: T[]): T[] {
 	return sourceArray;
 }
@@ -35,11 +32,7 @@ function overwriteMerge<T>(_destinationArray: T[], sourceArray: T[]): T[] {
  */
 function isMergeableObject(value: any): boolean {
 	// Don't merge special object types - treat them as atomic values
-	if (
-		value instanceof Date ||
-		value instanceof RegExp ||
-		value instanceof URL
-	) {
+	if (value instanceof Date || value instanceof RegExp || value instanceof URL) {
 		return false;
 	}
 
@@ -58,7 +51,6 @@ function isMergeableObject(value: any): boolean {
 	const proto = Object.getPrototypeOf(value);
 	return proto === null || proto === Object.prototype;
 }
-
 
 export function deepMerge(objects: any[], opts?: MergeOpts): any {
 	const mergeMethod = opts?.arrayMergeMethod === 'combine' ? combineMerge : overwriteMerge;

@@ -1,4 +1,3 @@
- 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { z } from 'zod';
 
@@ -23,7 +22,10 @@ export interface EnvOpts {
  * Traverses a zod schema to find the type definition for a given key path.
  * This is the zod equivalent of the runtypes reflection API.
  */
-function getValueType(keyPath: string[], schema: z.ZodTypeAny | undefined): z.ZodTypeAny | undefined {
+function getValueType(
+	keyPath: string[],
+	schema: z.ZodTypeAny | undefined,
+): z.ZodTypeAny | undefined {
 	if (!schema) {
 		return undefined;
 	}
@@ -60,7 +62,7 @@ function getValueType(keyPath: string[], schema: z.ZodTypeAny | undefined): z.Zo
 	// Traverse into object schema
 	if (current instanceof z.ZodObject) {
 		const [prop, ...remaining] = keyPath;
-		const {shape} = (current as any)._def; // V4: shape is a property, not a function
+		const { shape } = (current as any)._def; // V4: shape is a property, not a function
 		const fieldSchema = shape[prop];
 
 		if (!fieldSchema) {
@@ -149,7 +151,7 @@ function coerce(envVar: string, value: string, valueType: z.ZodTypeAny | undefin
 
 	// Handle union types - try each alternative
 	if (unwrapped instanceof z.ZodUnion) {
-		const {options} = (unwrapped as any)._def;
+		const { options } = (unwrapped as any)._def;
 		for (const option of options) {
 			const unionValue = coerce(envVar, value, option);
 			if (unionValue !== undefined) {
@@ -219,7 +221,9 @@ function coerce(envVar: string, value: string, valueType: z.ZodTypeAny | undefin
 	// path earlier in this function (Zod v4 creates ZodCustom for instanceof checks)
 
 	// Default: return string if we can't determine type
-	logEnv(`Unknown type for env var "${envVar}" (${(unwrapped as any)._def?.typeName || 'unknown'}), returning as string`);
+	logEnv(
+		`Unknown type for env var "${envVar}" (${(unwrapped as any)._def?.typeName || 'unknown'}), returning as string`,
+	);
 	return value;
 }
 
@@ -294,7 +298,9 @@ export function getEnvValue(value: string): string | void {
 		}
 		return defaultValue;
 	}
-	const defaultValue: string | undefined = matches[2]?.trim()?.match(/^["'](.+(?=["']$))["']$/)?.[1];
+	const defaultValue: string | undefined = matches[2]
+		?.trim()
+		?.match(/^["'](.+(?=["']$))["']$/)?.[1];
 	if (!envValue) {
 		return defaultValue;
 	}
@@ -310,10 +316,8 @@ export function interpolateEnv(config: any, schema: unknown, fieldPath: string[]
 				const valueType = getValueType(updatedPath, schema as z.ZodTypeAny);
 				const envValue = getEnvValue(value) ?? '';
 				if (!envValue) {
-					 
 					delete config[key];
 				} else {
-					 
 					config[key] = coerce(key, envValue, valueType);
 				}
 			}

@@ -68,7 +68,9 @@ function getConfigFromEnv(opts: LoadConfigOpts<z.ZodTypeAny | undefined>): any {
  * This allows caching raw config for modular loading optimization.
  * Note: Interpolation still happens per-file before merging.
  */
-export function loadRawConfig<Schema extends z.ZodTypeAny | undefined>(opts: LoadConfigOpts<Schema>): any {
+export function loadRawConfig<Schema extends z.ZodTypeAny | undefined>(
+	opts: LoadConfigOpts<Schema>,
+): any {
 	const { format = 'yaml', schema } = opts;
 
 	const directories = getSourceDirectories(opts);
@@ -91,7 +93,7 @@ export function loadRawConfig<Schema extends z.ZodTypeAny | undefined>(opts: Loa
 		});
 	});
 
-	const defaults = schema ? interpolateEnv(opts.defaults || {}, schema) : (opts.defaults || {});
+	const defaults = schema ? interpolateEnv(opts.defaults || {}, schema) : opts.defaults || {};
 
 	const config = deepMerge([defaults, ...configs], opts.mergeOpts);
 
@@ -102,7 +104,7 @@ export function loadRawConfig<Schema extends z.ZodTypeAny | undefined>(opts: Loa
  * Loads and validates configuration.
  */
 export default function load<Schema extends z.ZodTypeAny | undefined>(
-	opts: LoadConfigOpts<Schema>
+	opts: LoadConfigOpts<Schema>,
 ): Schema extends z.ZodTypeAny ? z.infer<Schema> : any {
 	const { schema } = opts;
 
