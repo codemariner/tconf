@@ -2,8 +2,7 @@ import { fileURLToPath } from 'url';
 import path, { dirname } from 'path';
 import { fail } from 'assert';
 
-import { z } from 'zod';
-
+import { z } from '../src/zod.js';
 import { initialize } from '../src/index.js';
 
 import { tconf } from './fixtures/modules/config/index.js';

@@ -4,14 +4,16 @@ import { Formats } from './parsers.js';
 
 export type Maybe<T> = T | undefined;
 
- 
-export type DeepPartial<T> = {
-	[P in keyof T]?: T[P] extends (infer U)[]
-		? DeepPartial<U>[]
-		: T[P] extends ReadonlyArray<infer U>
-		? ReadonlyArray<DeepPartial<U>>
-		: DeepPartial<T[P]>;
-};
+
+export type DeepPartial<T> = T extends Date | RegExp | URL
+	? T
+	: {
+			[P in keyof T]?: T[P] extends (infer U)[]
+				? DeepPartial<U>[]
+				: T[P] extends ReadonlyArray<infer U>
+				? ReadonlyArray<DeepPartial<U>>
+				: DeepPartial<T[P]>;
+	  };
 
 export type ConfigFormat = Formats;
 

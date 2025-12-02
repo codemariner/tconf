@@ -1,5 +1,4 @@
-import { z } from 'zod';
-
+import { z } from '../../../src/zod.js';
 import { EnumRecord } from '../../../src/index.js';
 
 const DatabaseConfig = z

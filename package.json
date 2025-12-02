@@ -12,8 +12,8 @@
 			"import": "./dist/index.js"
 		},
 		"./zod": {
-			"types": "./node_modules/zod/index.d.ts",
-			"import": "./node_modules/zod/index.mjs"
+			"types": "./dist/zod.d.ts",
+			"import": "./dist/zod.js"
 		},
 		"./package.json": "./package.json"
 	},

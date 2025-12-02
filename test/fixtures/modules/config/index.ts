@@ -1,8 +1,7 @@
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 
-import { z } from 'zod';
-
+import { z } from '../../../../src/zod.js';
 import { initialize } from '../../../../src/index.js';
 
 const __filename = fileURLToPath(import.meta.url);

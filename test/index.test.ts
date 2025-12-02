@@ -1,8 +1,7 @@
 import { fileURLToPath } from 'url';
 import path, { dirname } from 'path';
 
-import { z } from 'zod';
-
+import { z } from '../src/zod.js';
 import { EnumRecord } from '../src/types.js';
 import { DEFAULT_PREFIX } from '../src/env.js';
 import load from '../src/load-config.js';
@@ -245,6 +244,62 @@ describe('getConfig', () => {
 		});
 	});
 
+	it('should coerce number literal from environment variables', () => {
+		process.env.CONFIG_maxRetries = '3';
+		const result = load({
+			path: '',
+			schema: z.object({
+				maxRetries: z.literal(3),
+			}),
+		});
+		expect(result.maxRetries).toBe(3);
+	});
+
+	it('should coerce boolean literal from environment variables', () => {
+		process.env.CONFIG_enabled = 'true';
+		const result = load({
+			path: '',
+			schema: z.object({
+				enabled: z.literal(true),
+			}),
+		});
+		expect(result.enabled).toBe(true);
+	});
+
+	it('should coerce false boolean literal from environment variables', () => {
+		process.env.CONFIG_disabled = 'false';
+		const result = load({
+			path: '',
+			schema: z.object({
+				disabled: z.literal(false),
+			}),
+		});
+		expect(result.disabled).toBe(false);
+	});
+
+	it('should coerce valid enum value from environment variables', () => {
+		process.env.CONFIG_environment = 'production';
+		const result = load({
+			path: '',
+			schema: z.object({
+				environment: z.enum(['development', 'staging', 'production']),
+			}),
+		});
+		expect(result.environment).toBe('production');
+	});
+
+	it('should reject invalid enum value from environment variables', () => {
+		process.env.CONFIG_environment = 'invalid';
+		expect(() =>
+			load({
+				path: '',
+				schema: z.object({
+					environment: z.enum(['development', 'staging', 'production']),
+				}),
+			})
+		).toThrow();
+	});
+
 	it('should allow for environment overrides of intersect types', () => {
 		process.env.CONFIG_foo = 'foo';
 		process.env.CONFIG_bar = 'bar';
@@ -423,7 +478,7 @@ describe('getConfig', () => {
 		const result = load({
 			path: '',
 			schema: z.object({
-				nameMatch: z.instanceof(RegExp),
+				nameMatch: z.regexp(),
 			}),
 			defaults: {
 				nameMatch: /asdf/,
@@ -432,6 +487,53 @@ describe('getConfig', () => {
 
 		expect(result.nameMatch.test('asdf')).toBeFalsy();
 		expect(result.nameMatch.test('foo-bar')).toBeTruthy();
+	});
+
+	it('should reject invalid regex patterns from environment variables', () => {
+		process.env.CONFIG_pattern = '[invalid';
+
+		// Invalid regex pattern should fail validation
+		expect(() =>
+			load({
+				path: '',
+				schema: z.object({
+					pattern: z.regexp(),
+				}),
+			})
+		).toThrow();
+	});
+
+	it('should coerce URL env values', () => {
+		process.env.CONFIG_apiEndpoint = 'https://api.example.com/v1';
+
+		const result = load({
+			path: '',
+			schema: z.object({
+				apiEndpoint: z.url(),
+			}),
+			defaults: {
+				apiEndpoint: new URL('https://default.com'),
+			},
+		});
+
+		expect(result.apiEndpoint).toBeInstanceOf(URL);
+		expect(result.apiEndpoint.hostname).toBe('api.example.com');
+		expect(result.apiEndpoint.pathname).toBe('/v1');
+		expect(result.apiEndpoint.protocol).toBe('https:');
+	});
+
+	it('should reject invalid URL strings from environment variables', () => {
+		process.env.CONFIG_endpoint = 'not a valid url';
+
+		// Invalid URL should fail validation
+		expect(() =>
+			load({
+				path: '',
+				schema: z.object({
+					endpoint: z.url(),
+				}),
+			})
+		).toThrow();
 	});
 
 	it('should support env array values', () => {

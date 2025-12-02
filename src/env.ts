@@ -4,6 +4,7 @@ import { z } from 'zod';
 
 import log from './log.js';
 import { deepMerge, MergeOpts } from './util.js';
+import { REGEXP_BRAND, URL_BRAND } from './zod-extensions.js';
 
 const logEnv = log.extend('env');
 const ENV_TEMPLATE_VALUE_REGEX = /\$\{([^:]+):?(.*)\}$/;
@@ -102,35 +103,26 @@ function coerce(envVar: string, value: string, valueType: z.ZodTypeAny | undefin
 		unwrapped = baseSchema;
 	}
 
-	// Handle custom validators (including z.instanceof())
-	// V4 uses ZodCustom for z.instanceof()
-	if (unwrapped instanceof z.ZodCustom) {
-		// Try common instanceof types: Date and RegExp
-		// Try Date first
-		const dateValue = new Date(value);
-		if (!isNaN(dateValue.getTime())) {
-			try {
-				unwrapped.parse(dateValue);
-				return dateValue;
-			} catch {
-				// Not a date, continue
-			}
-		}
-		// Try RegExp
+	// Handle RegExp - custom tconf extension (z.regexp())
+	// Check if schema has our RegExp brand marker
+	if ((unwrapped as any)[REGEXP_BRAND] === true) {
 		try {
-			const regexpValue = new RegExp(value);
-			try {
-				unwrapped.parse(regexpValue);
-				return regexpValue;
-			} catch {
-				// Not a regexp
-			}
-		} catch {
-			// Invalid regexp syntax
+			return new RegExp(value);
+		} catch (error) {
+			logEnv(`Unable to coerce "${value}" to RegExp for env var "${envVar}": ${error}`);
+			return undefined;
 		}
-		// If neither worked, return undefined (custom validators need explicit values, not strings)
-		logEnv(`Unable to coerce "${value}" for custom validator on env var "${envVar}"`);
-		return undefined;
+	}
+
+	// Handle URL - custom tconf extension (z.url())
+	// Check if schema has our URL brand marker
+	if ((unwrapped as any)[URL_BRAND] === true) {
+		try {
+			return new URL(value);
+		} catch (error) {
+			logEnv(`Unable to coerce "${value}" to URL for env var "${envVar}": ${error}`);
+			return undefined;
+		}
 	}
 
 	// Handle literal types
@@ -170,11 +162,12 @@ function coerce(envVar: string, value: string, valueType: z.ZodTypeAny | undefin
 
 	// Handle enum types
 	if (unwrapped instanceof z.ZodEnum) {
-		const enumValues = (unwrapped as any)._def.values;
-		if (enumValues.includes(value)) {
+		// V4: enum values are in .options property
+		const enumValues = (unwrapped as any).options;
+		if (enumValues && enumValues.includes(value)) {
 			return value;
 		}
-		logEnv(`env var "${envVar}" value "${value}" not in enum [${enumValues.join(', ')}]`);
+		logEnv(`env var "${envVar}" value "${value}" not in enum [${enumValues?.join(', ')}]`);
 		return undefined;
 	}
 
@@ -222,27 +215,8 @@ function coerce(envVar: string, value: string, valueType: z.ZodTypeAny | undefin
 		return date;
 	}
 
-	// Handle z.instanceof(RegExp) and z.instanceof(Date)
-	// Check _def.typeName for ZodType which is used for instanceof checks
-	if ((unwrapped as any)._def?.typeName === 'ZodType') {
-		const cls = (unwrapped as any)._def?.cls;
-		if (cls === RegExp) {
-			try {
-				return new RegExp(value);
-			} catch (error) {
-				logEnv(`Unable to coerce "${value}" to RegExp for env var "${envVar}": ${error}`);
-				return undefined;
-			}
-		}
-		if (cls === Date) {
-			const date = new Date(value);
-			if (isNaN(date.getTime())) {
-				logEnv(`Unable to coerce "${value}" to Date for env var "${envVar}"`);
-				return undefined;
-			}
-			return date;
-		}
-	}
+	// Note: z.instanceof(RegExp) and z.instanceof(Date) are handled by the ZodCustom
+	// path earlier in this function (Zod v4 creates ZodCustom for instanceof checks)
 
 	// Default: return string if we can't determine type
 	logEnv(`Unknown type for env var "${envVar}" (${(unwrapped as any)._def?.typeName || 'unknown'}), returning as string`);
