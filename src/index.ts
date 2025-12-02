@@ -17,7 +17,7 @@ export type TconfOpts<Schema extends z.ZodTypeAny> = Pick<
 };
 
 export class Tconf<T extends z.ZodTypeAny> {
-	private config: z.infer<T> = {};
+	private config: z.infer<T>;
 
 	private registry: Map<string, z.ZodTypeAny> = new Map();
 
@@ -36,7 +36,7 @@ export class Tconf<T extends z.ZodTypeAny> {
 		this.config = load({
 			...opts,
 			defaults: opts.defaults as any,
-		});
+		}) as z.infer<T>;
 	}
 
 	/**
@@ -56,7 +56,7 @@ export class Tconf<T extends z.ZodTypeAny> {
 		this.schema = z.intersection(this.schema as z.ZodObject<any>, moduleSchema);
 
 		// Re-validate cached config with expanded schema (no file I/O!)
-		this.config = this.schema.parse(this.rawConfig);
+		this.config = this.schema.parse(this.rawConfig) as z.infer<T>;
 
 		this.registry.set(name, schema);
 

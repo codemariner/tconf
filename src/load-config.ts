@@ -111,8 +111,8 @@ export default function load<Schema extends z.ZodTypeAny | undefined>(
 
 	// Validate with schema if provided
 	if (schema) {
-		return schema.parse(config);
+		return schema.parse(config) as Schema extends z.ZodTypeAny ? z.infer<Schema> : any;
 	}
 
-	return config;
+	return config as Schema extends z.ZodTypeAny ? z.infer<Schema> : any;
 }

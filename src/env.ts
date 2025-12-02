@@ -59,7 +59,7 @@ function getValueType(keyPath: string[], schema: z.ZodTypeAny | undefined): z.Zo
 	// Traverse into object schema
 	if (current instanceof z.ZodObject) {
 		const [prop, ...remaining] = keyPath;
-		const shape = (current as any)._def.shape();
+		const {shape} = (current as any)._def; // V4: shape is a property, not a function
 		const fieldSchema = shape[prop];
 
 		if (!fieldSchema) {
@@ -94,43 +94,51 @@ function coerce(envVar: string, value: string, valueType: z.ZodTypeAny | undefin
 		unwrapped = (unwrapped as any)._def.innerType || (unwrapped as any)._def.type;
 	}
 
-	// Handle effects (transforms, refinements)
-	// For instanceof checks (which use ZodEffects wrapping ZodAny), try to infer the type
-	if (unwrapped instanceof z.ZodEffects) {
+	// Handle transforms
+	// V4 renamed ZodEffects to ZodTransform
+	if (unwrapped instanceof z.ZodTransform) {
 		const baseSchema = (unwrapped as any)._def.schema;
-		// If the base schema is ZodAny, this might be z.instanceof()
-		// Try common types and let the refinement validate
-		if (baseSchema instanceof z.ZodAny || (baseSchema as any)._any) {
-			// Try Date first
-			const dateValue = new Date(value);
-			if (!isNaN(dateValue.getTime())) {
-				try {
-					unwrapped.parse(dateValue);
-					return dateValue;
-				} catch {
-					// Not a date, continue
-				}
-			}
-			// Try RegExp
+		// Unwrap transforms
+		unwrapped = baseSchema;
+	}
+
+	// Handle custom validators (including z.instanceof())
+	// V4 uses ZodCustom for z.instanceof()
+	if (unwrapped instanceof z.ZodCustom) {
+		// Try common instanceof types: Date and RegExp
+		// Try Date first
+		const dateValue = new Date(value);
+		if (!isNaN(dateValue.getTime())) {
 			try {
-				const regexpValue = new RegExp(value);
-				try {
-					unwrapped.parse(regexpValue);
-					return regexpValue;
-				} catch {
-					// Not a regexp
-				}
+				unwrapped.parse(dateValue);
+				return dateValue;
 			} catch {
-				// Invalid regexp syntax
+				// Not a date, continue
 			}
 		}
-		// Unwrap for normal effects
-		unwrapped = baseSchema;
+		// Try RegExp
+		try {
+			const regexpValue = new RegExp(value);
+			try {
+				unwrapped.parse(regexpValue);
+				return regexpValue;
+			} catch {
+				// Not a regexp
+			}
+		} catch {
+			// Invalid regexp syntax
+		}
+		// If neither worked, return undefined (custom validators need explicit values, not strings)
+		logEnv(`Unable to coerce "${value}" for custom validator on env var "${envVar}"`);
+		return undefined;
 	}
 
 	// Handle literal types
 	if (unwrapped instanceof z.ZodLiteral) {
-		const literalValue = (unwrapped as any)._def.value;
+		// V4 uses _def.values (array), V3 used _def.value (single value)
+		const literalValues = (unwrapped as any)._def.values || [(unwrapped as any)._def.value];
+		const literalValue = literalValues[0];
+
 		// Try coercing to same type as literal
 		if (typeof literalValue === 'string' && value === literalValue) {
 			return value;

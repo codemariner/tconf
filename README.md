@@ -64,12 +64,17 @@ Representing this as a flat list of env vars is **not** an effective way to work
 npm install tconf
 ```
 
+> **Note:** tconf includes Zod 4 as a bundled dependency. You should import Zod from `tconf/zod` to ensure version compatibility:
+> ```typescript
+> import { z } from 'tconf/zod';
+> ```
+
 ### 2. create config specification (optional)
 tconf utilizes [zod](https://zod.dev/) for runtime type checking and as a schema for your config. This represents what you want your config to look like.
 
 ```typescript
 // src/config.ts
-import { z } from 'zod';
+import { z } from 'tconf/zod';
 
 const ApiConfig = z.object({
     port: z.number(),
@@ -170,7 +175,7 @@ Then in your module, register your configuration schema and provide access to yo
 
 ```typescript
 // src/modules/db/config.ts
-import { z } from 'zod';
+import { z } from 'tconf/zod';
 import { tconf } from '../../config';
 
 const Config = z.object({

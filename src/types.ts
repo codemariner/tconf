@@ -45,18 +45,18 @@ export type InferSchema<T extends ZodSchema> = z.infer<T>;
  * @param enumSchema - zod enum schema
  * @param valueSchema - zod schema for the values
  */
-export function EnumRecord<
-	T extends z.ZodEnum<[string, ...string[]]>,
-	V extends ZodSchema
->(
+export function EnumRecord<T extends z.ZodEnum<any>, V extends ZodSchema>(
 	enumSchema: T,
 	valueSchema: V
-): z.ZodObject<Record<z.infer<T>, V>> {
+): z.ZodObject<any> {
 	const keys = enumSchema.options as string[];
-	const shape = keys.reduce((acc, key) => {
-		acc[key] = valueSchema;
-		return acc;
-	}, {} as Record<string, V>);
+	const shape = keys.reduce(
+		(acc, key) => {
+			acc[key] = valueSchema;
+			return acc;
+		},
+		{} as Record<string, V>
+	);
 
-	return z.object(shape) as z.ZodObject<Record<z.infer<T>, V>>;
+	return z.object(shape);
 }

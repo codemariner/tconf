@@ -22,6 +22,8 @@ All notable changes to this project will be documented in this file.
 
 ### Features
 
+* **Bundled Zod 4**: tconf now includes Zod 4.x as a direct dependency and exports it for use via `import { z } from 'tconf/zod'`. This ensures version compatibility and eliminates peer dependency conflicts. Users should import Zod from `tconf/zod` rather than installing it separately.
+
 * **Performance Optimization**: Modular configuration loading optimized - files are now loaded once and cached. The `register()` method re-validates cached configuration without re-reading files from disk.
 
 * **Hybrid Coercion System**: Automatic type coercion now uses zod's built-in coercion for primitives (`z.coerce.number()`, `z.coerce.boolean()`) with custom logic for complex types (Date, RegExp, arrays). Date parsing uses JavaScript's native `new Date()` constructor.

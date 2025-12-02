@@ -11,6 +11,10 @@
 			"types": "./dist/index.d.ts",
 			"import": "./dist/index.js"
 		},
+		"./zod": {
+			"types": "./node_modules/zod/index.d.ts",
+			"import": "./node_modules/zod/index.mjs"
+		},
 		"./package.json": "./package.json"
 	},
 	"repository": {
@@ -67,7 +71,7 @@
 		"deepmerge": "^4.2.2",
 		"js-yaml": "^4.1.0",
 		"json5": "^2.2.0",
-		"zod": "^3.23.0"
+		"zod": "^4.1.13"
 	},
 	"husky": {
 		"hooks": {
