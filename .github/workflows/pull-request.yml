@@ -20,15 +20,19 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
+    - uses: pnpm/action-setup@v4
     - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v4
       with:
         node-version: ${{ matrix.node-version }}
+        cache: 'pnpm'
     - name: install
-      run: npm install
+      run: pnpm install --frozen-lockfile
+    - name: build
+      run: pnpm build
     - name: lint
-      run: npm run lint
+      run: pnpm lint
     - name: prettier
-      run: npm run prettier:check
+      run: pnpm prettier:check
     - name: test
-      run: npm run test
+      run: pnpm test
