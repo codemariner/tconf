@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [4.1.0] - 2025-12-02
+
+### Breaking Changes
+
+* The default zod `url()` and `regex()` are no longer overridden. Instead, you can import `urlObj()` and `regexObj()`. Example:
+  ```js
+  import * as z from 'tconf/zod'
+
+  const schema = z.object({
+    url: z.urlObj()
+  })
+  ```
+
+
 ## [4.0.0] - 2025-12-02
 
 ### Breaking Changes
