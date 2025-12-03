@@ -11,7 +11,11 @@ export const REGEXP_BRAND = Symbol('tconf_regexp');
 // brand type for URL schemas so we can identify them during coercion
 export const URL_BRAND = Symbol('tconf_url');
 
-export function regexp(): z.ZodCustom<RegExp> {
+/**
+ * Validates RegExp objects (not regex patterns as strings)
+ * For string patterns, use z.string().regex()
+ */
+export function regexObj(): z.ZodCustom<RegExp> {
 	const schema = z.custom<RegExp>((val) => val instanceof RegExp, {
 		message: 'Expected RegExp',
 	});
@@ -22,7 +26,11 @@ export function regexp(): z.ZodCustom<RegExp> {
 	return schema;
 }
 
-export function url(): z.ZodCustom<URL> {
+/**
+ * Validates URL objects (not URL strings)
+ * For URL strings, use z.string().url()
+ */
+export function urlObj(): z.ZodCustom<URL> {
 	const schema = z.custom<URL>((val) => val instanceof URL, {
 		message: 'Expected URL',
 	});
@@ -33,6 +41,6 @@ export function url(): z.ZodCustom<URL> {
 	return schema;
 }
 
-export type ZodRegExp = ReturnType<typeof regexp>;
+export type ZodRegexObj = ReturnType<typeof regexObj>;
 
-export type ZodURL = ReturnType<typeof url>;
+export type ZodURLObj = ReturnType<typeof urlObj>;

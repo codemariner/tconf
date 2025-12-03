@@ -558,8 +558,14 @@ const tconf = initialize({
 tconf uses [Zod](https://zod.dev/) for runtime validation and TypeScript type inference. Import Zod from `tconf/zod` to get tconf's custom extensions:
 
 ```typescript
-import { z } from 'tconf/zod'; // ✅ Includes z.regexp() and z.url()
-import { z } from 'zod';        // ❌ Standard Zod (missing tconf extensions)
+import * as z from 'tconf/zod'; // ✅ Includes all zod types + z.regexObj() and z.urlObj()
+import { z } from 'zod';         // ❌ Standard Zod (missing tconf extensions on 'z')
+```
+
+You can also use named imports:
+```typescript
+import { z, regexObj, urlObj } from 'tconf/zod';
+// Then use: z.object(), regexObj(), urlObj()
 ```
 
 ### Supported Types
@@ -591,7 +597,7 @@ CONFIG_createdAt="2024-01-01T00:00:00Z"
 **RegExp objects (tconf extension):**
 ```typescript
 const Config = z.object({
-  pattern: z.regexp(),
+  pattern: z.regexObj(), // Validates RegExp objects (use z.string().regex() for patterns)
 });
 ```
 
@@ -603,7 +609,7 @@ CONFIG_pattern="^foo-.*"
 **URL objects (tconf extension):**
 ```typescript
 const Config = z.object({
-  apiEndpoint: z.url(),
+  apiEndpoint: z.urlObj(), // Validates URL objects (use z.string().url() for URL strings)
 });
 ```
 
@@ -716,8 +722,8 @@ tconf automatically coerces environment variable string values to match your sch
 | `z.number()` | `CONFIG_port=3000` | `3000` | `number` |
 | `z.boolean()` | `CONFIG_debug=true` | `true` | `boolean` |
 | `z.date()` | `CONFIG_createdAt=2024-01-01` | `new Date("2024-01-01")` | `Date` |
-| `z.regexp()` | `CONFIG_pattern=^test` | `new RegExp("^test")` | `RegExp` |
-| `z.url()` | `CONFIG_api=https://api.com` | `new URL("https://api.com")` | `URL` |
+| `z.regexObj()` | `CONFIG_pattern=^test` | `new RegExp("^test")` | `RegExp` |
+| `z.urlObj()` | `CONFIG_api=https://api.com` | `new URL("https://api.com")` | `URL` |
 | `z.array(z.string())` | `CONFIG_tags=a,b,c` | `['a', 'b', 'c']` | `string[]` |
 | `z.literal(3)` | `CONFIG_retries=3` | `3` | `3` |
 | `z.enum([...])` | `CONFIG_env=production` | `'production'` | `string` |
@@ -745,15 +751,17 @@ CONFIG_ports=3000,4000,5000
 
 tconf extends Zod with additional schema types for common JavaScript objects:
 
-#### z.regexp()
+#### z.regexObj()
 
 Validates and coerces to `RegExp` objects.
 
+**Note:** For validating regex patterns as strings, use Zod's built-in `z.string().regex()`. This validates `RegExp` object instances.
+
 ```typescript
-import { z } from 'tconf/zod';
+import * as z from 'tconf/zod';
 
 const Config = z.object({
-  pattern: z.regexp(),
+  pattern: z.regexObj(),
 });
 ```
 
@@ -773,17 +781,17 @@ const config = tconf.get();
 config.pattern.test('foo-bar'); // true or false
 ```
 
-#### z.url()
+#### z.urlObj()
 
 Validates and coerces to `URL` objects.
 
-**Note:** This overrides Zod's built-in `z.url()` which validates URL strings. tconf's version validates `URL` objects instead.
+**Note:** For validating URL strings, use Zod's built-in `z.string().url()`. This validates `URL` object instances.
 
 ```typescript
-import { z } from 'tconf/zod';
+import * as z from 'tconf/zod';
 
 const Config = z.object({
-  apiEndpoint: z.url(),
+  apiEndpoint: z.urlObj(),
 });
 ```
 
@@ -913,7 +921,7 @@ API_ENDPOINT=https://api.example.com
   },
   api: {
     secret: 'my-secret-key',
-    endpoint: new URL('https://api.example.com') // Coerced to URL if schema specifies z.url()
+    endpoint: new URL('https://api.example.com') // Coerced to URL if schema specifies z.urlObj()
   }
 }
 ```
@@ -1006,7 +1014,7 @@ CONFIG_pattern=^user-\d+
 
 ```typescript
 const Config = z.object({
-  pattern: z.regexp(),
+  pattern: z.regexObj(),
 });
 // Result: { pattern: /^user-\d+/ }
 ```
@@ -1018,7 +1026,7 @@ CONFIG_apiEndpoint=https://api.example.com/v1
 
 ```typescript
 const Config = z.object({
-  apiEndpoint: z.url(),
+  apiEndpoint: z.urlObj(),
 });
 // Result: { apiEndpoint: URL object }
 ```
@@ -1625,7 +1633,7 @@ const BaseConfig = z.object({
   }),
   tracing: z.object({
     enabled: z.boolean(),
-    endpoint: z.url().optional(),
+    endpoint: z.urlObj().optional(),
   }),
 });
 
@@ -1883,12 +1891,13 @@ v4 requires Node.js >= 18.
 
 ### RegExp or URL types not working
 
-**Problem:** `z.regexp()` or `z.url()` not recognized.
+**Problem:** `z.regexObj()` or `z.urlObj()` not recognized.
 
 **Solutions:**
-1. Import from `tconf/zod`, not `zod`: `import { z } from 'tconf/zod'`
+1. Import from `tconf/zod`, not `zod`: `import * as z from 'tconf/zod'` or `import { z, regexObj, urlObj } from 'tconf/zod'`
 2. These are tconf custom extensions, not available in standard Zod
-3. Check that your schema uses these types correctly
+3. Use `z.regexObj()` for RegExp objects (not `z.regexp()`)
+4. Use `z.urlObj()` for URL objects (not `z.url()` - that's for URL strings)
 
 ### Merging behavior unexpected
 

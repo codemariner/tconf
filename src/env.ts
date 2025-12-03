@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { z } from 'zod';
+import * as z from 'zod';
 
 import log from './log.js';
 import { deepMerge, MergeOpts } from './util.js';

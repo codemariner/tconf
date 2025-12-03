@@ -86,12 +86,14 @@ DB_PASSWORD=secret NODE_ENV=production node app.js
 Environment variables are automatically coerced based on your schema (no need to add `.coerce`):
 
 ```typescript
+import * as z from 'tconf/zod';
+
 const Config = z.object({
   port: z.number(),
   enabled: z.boolean(),
   created: z.date(),
-  apiUrl: z.url(),
-  pattern: z.regexp(),
+  apiUrl: z.urlObj(),    // Validates URL objects (use z.string().url() for URL strings)
+  pattern: z.regexObj(), // Validates RegExp objects (use z.string().regex() for patterns)
 });
 
 // Environment variables

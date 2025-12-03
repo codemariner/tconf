@@ -1,7 +1,7 @@
 import { fileURLToPath } from 'url';
 import path, { dirname } from 'path';
 
-import { z } from '../src/zod.js';
+import * as z from '../src/zod.js';
 import { EnumRecord } from '../src/types.js';
 import { DEFAULT_PREFIX } from '../src/env.js';
 import load from '../src/load-config.js';
@@ -478,7 +478,7 @@ describe('getConfig', () => {
 		const result = load({
 			path: '',
 			schema: z.object({
-				nameMatch: z.regexp(),
+				nameMatch: z.regexObj(),
 			}),
 			defaults: {
 				nameMatch: /asdf/,
@@ -497,7 +497,7 @@ describe('getConfig', () => {
 			load({
 				path: '',
 				schema: z.object({
-					pattern: z.regexp(),
+					pattern: z.regexObj(),
 				}),
 			}),
 		).toThrow();
@@ -509,7 +509,7 @@ describe('getConfig', () => {
 		const result = load({
 			path: '',
 			schema: z.object({
-				apiEndpoint: z.url(),
+				apiEndpoint: z.urlObj(),
 			}),
 			defaults: {
 				apiEndpoint: new URL('https://default.com'),
@@ -530,7 +530,7 @@ describe('getConfig', () => {
 			load({
 				path: '',
 				schema: z.object({
-					endpoint: z.url(),
+					endpoint: z.urlObj(),
 				}),
 			}),
 		).toThrow();
