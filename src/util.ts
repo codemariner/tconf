@@ -1,13 +1,11 @@
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import deepmerge from 'deepmerge';
-import { Runtype } from 'runtypes';
+import { z } from 'zod';
 
 export interface MergeOpts {
 	arrayMergeMethod: 'combine' | 'overwrite';
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const combineMerge = (target: any[], source: any[], options: any): any[] => {
 	const destination = target.slice();
 
@@ -23,19 +21,43 @@ const combineMerge = (target: any[], source: any[], options: any): any[] => {
 	return destination;
 };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function overwriteMerge<T>(_destinationArray: T[], sourceArray: T[]): T[] {
 	return sourceArray;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function deepMerge(objects: any[], opts?: MergeOpts): any {
-	const mergeMethod = opts?.arrayMergeMethod === 'combine' ? combineMerge : overwriteMerge;
-	return deepmerge.all(objects, { arrayMerge: mergeMethod });
+/**
+ * Custom check for whether an object should be merged.
+ * We don't want to merge special object types like Date, RegExp, URL, etc.
+ * These should be treated as atomic values and replaced, not merged.
+ */
+function isMergeableObject(value: any): boolean {
+	if (value instanceof Date || value instanceof RegExp || value instanceof URL) {
+		return false;
+	}
+
+	const isNonNullObject = value !== null && typeof value === 'object';
+	if (!isNonNullObject) {
+		return false;
+	}
+
+	if (Array.isArray(value)) {
+		return true;
+	}
+
+	const proto = Object.getPrototypeOf(value);
+	return proto === null || proto === Object.prototype;
 }
 
-export function isRuntype(obj?: any): obj is Runtype {
-	return !!(obj?.tag && obj?.reflect);
+export function deepMerge(objects: any[], opts?: MergeOpts): any {
+	const mergeMethod = opts?.arrayMergeMethod === 'combine' ? combineMerge : overwriteMerge;
+	return deepmerge.all(objects, {
+		arrayMerge: mergeMethod,
+		isMergeableObject,
+	});
+}
+
+export function isZodSchema(obj?: any): obj is z.ZodTypeAny {
+	return obj instanceof z.ZodType;
 }
 
 export class ConfigurationError extends Error {}

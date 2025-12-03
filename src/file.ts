@@ -1,11 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable no-sync */
 
 import fs from 'fs';
 
-import baseLog from './log';
-import { ConfigParser } from './parsers';
-import { ConfigurationError } from './util';
+import baseLog from './log.js';
+import { ConfigParser } from './parsers.js';
+import { ConfigurationError } from './util.js';
 
 const log = baseLog.extend('file');
 
@@ -22,12 +21,12 @@ export function readConfigSync(filePath: string, parser: ConfigParser): any {
 	} catch (e) {
 		log(`error parsing configuration file ${filePath}`, e);
 		throw new ConfigurationError(
-			`Error while parsing configuration file ${filePath}: ${(e as any).message}`
+			`Error while parsing configuration file ${filePath}: ${(e as any).message}`,
 		);
 	}
 	if (typeof data !== 'object' || Array.isArray(data)) {
 		throw new ConfigurationError(
-			`Invalid configuration from ${filePath}. Configuration should be an object.`
+			`Invalid configuration from ${filePath}. Configuration should be an object.`,
 		);
 	}
 	return data;

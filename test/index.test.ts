@@ -1,23 +1,15 @@
-/* eslint-disable jest/expect-expect */
-import path from 'path';
+import { fileURLToPath } from 'url';
+import path, { dirname } from 'path';
 
-import {
-	Array,
-	Boolean,
-	InstanceOf,
-	Literal,
-	Number,
-	Partial,
-	Record,
-	String,
-	Union,
-} from 'runtypes';
+import { z } from '../src/zod.js';
+import { EnumRecord } from '../src/types.js';
+import { DEFAULT_PREFIX } from '../src/env.js';
+import load from '../src/load-config.js';
 
-import { EnumRecord } from '../src/types';
-import { DEFAULT_PREFIX } from '../src/env';
-import load from '../src/load-config';
+import spec from './fixtures/config/spec.js';
 
-import spec from './fixtures/config/spec';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 // for testing
 class Foo {}
@@ -49,7 +41,7 @@ describe('getConfig', () => {
 					US: { url: 'https://site.us' },
 					CA: { url: 'https://site.ca' },
 				},
-			})
+			}),
 		);
 	});
 
@@ -70,7 +62,7 @@ describe('getConfig', () => {
 					US: { url: 'https://site.us' },
 					CA: { url: 'https://site.ca' },
 				},
-			})
+			}),
 		);
 	});
 
@@ -90,7 +82,7 @@ describe('getConfig', () => {
 					US: { url: 'https://site.us' },
 					CA: { url: 'https://site.ca' },
 				},
-			})
+			}),
 		);
 	});
 
@@ -109,7 +101,7 @@ describe('getConfig', () => {
 					US: { url: 'https://site.us.dev' },
 					CA: { url: 'https://site.ca.dev' },
 				},
-			})
+			}),
 		);
 	});
 
@@ -129,20 +121,20 @@ describe('getConfig', () => {
 					US: { url: 'https://site.us.dev' },
 					CA: { url: 'https://site.ca.dev' },
 				},
-			})
+			}),
 		);
 	});
 
 	it('should coerce environment value to number, boolean, and date', () => {
 		process.env.CONFIG_port = '1000';
 		process.env.CONFIG_debug = 'true';
-		process.env.CONFIG_startTime = '12-11-2021T00:00:00';
+		process.env.CONFIG_startTime = '2021-12-11T00:00:00';
 		const result = load({
 			path: '',
-			schema: Record({
-				port: Number,
-				debug: Boolean,
-				startTime: InstanceOf(Date),
+			schema: z.object({
+				port: z.number(),
+				debug: z.boolean(),
+				startTime: z.date(),
 			}),
 		});
 		expect(result.port).toBe(1000);
@@ -171,44 +163,44 @@ describe('getConfig', () => {
 					US: { url: 'https://site.us.dev' },
 					CA: { url: 'https://site.ca.dev' },
 				},
-			})
+			}),
 		);
 	});
 
-    it('should use default values for env templates', () => {
-        process.env.URL_CA = 'test'
-        const result = load({
-            path: path.join(__dirname, 'fixtures', 'config', 'with-env'),
-            sources: ['default', 'env-defaults'],
-            schema: spec
-        })
-        expect(result).toMatchObject(
-            expect.objectContaining<typeof result>({
-                database: {
-                    host: 'database.server',
-                    port: 4000,
-                },
-                sites: {
-                  CA: {
-                      url: 'test'
-                  },
-                  US: {
-                      url: 'https://us.com'
-                  }
-                }
-            })
-        );
-    })
+	it('should use default values for env templates', () => {
+		process.env.URL_CA = 'test';
+		const result = load({
+			path: path.join(__dirname, 'fixtures', 'config', 'with-env'),
+			sources: ['default', 'env-defaults'],
+			schema: spec,
+		});
+		expect(result).toMatchObject(
+			expect.objectContaining<typeof result>({
+				database: {
+					host: 'database.server',
+					port: 4000,
+				},
+				sites: {
+					CA: {
+						url: 'test',
+					},
+					US: {
+						url: 'https://us.com',
+					},
+				},
+			}),
+		);
+	});
 
 	it('should not error on invalid env coercion', () => {
 		process.env.CONFIG_foo = 'true';
 		expect(() =>
 			load({
 				path: '',
-				schema: Record({
-					foo: InstanceOf(Foo),
+				schema: z.object({
+					foo: z.instanceof(Foo),
 				}),
-			})
+			}),
 		).toThrow();
 	});
 
@@ -217,9 +209,9 @@ describe('getConfig', () => {
 		process.env.CONFIG_bar = 'env-bar';
 		const result = load({
 			path: '',
-			schema: Record({
-				foo: Union(Literal('foo'), Literal('baz')),
-				bar: Literal('bar'),
+			schema: z.object({
+				foo: z.union([z.literal('foo'), z.literal('baz')]),
+				bar: z.literal('bar'),
 			}),
 			defaults: {
 				foo: 'baz',
@@ -232,22 +224,125 @@ describe('getConfig', () => {
 		});
 	});
 
+	it('should coerce union types from environment variables', () => {
+		process.env.CONFIG_port = '3000';
+		process.env.CONFIG_enabled = 'true';
+		process.env.CONFIG_mode = 'development';
+		const result = load({
+			path: '',
+			schema: z.object({
+				// Put more specific type first in union - tries in order
+				port: z.union([z.number(), z.string()]),
+				enabled: z.union([z.boolean(), z.literal('auto')]),
+				mode: z.union([z.literal('production'), z.literal('development'), z.literal('test')]),
+			}),
+		});
+		expect(result).toMatchObject({
+			port: 3000, // coerced to number (tries z.number() first)
+			enabled: true, // coerced to boolean (tries z.boolean() first)
+			mode: 'development', // matched literal
+		});
+	});
+
+	it('should coerce number literal from environment variables', () => {
+		process.env.CONFIG_maxRetries = '3';
+		const result = load({
+			path: '',
+			schema: z.object({
+				maxRetries: z.literal(3),
+			}),
+		});
+		expect(result.maxRetries).toBe(3);
+	});
+
+	it('should coerce boolean literal from environment variables', () => {
+		process.env.CONFIG_enabled = 'true';
+		const result = load({
+			path: '',
+			schema: z.object({
+				enabled: z.literal(true),
+			}),
+		});
+		expect(result.enabled).toBe(true);
+	});
+
+	it('should coerce false boolean literal from environment variables', () => {
+		process.env.CONFIG_disabled = 'false';
+		const result = load({
+			path: '',
+			schema: z.object({
+				disabled: z.literal(false),
+			}),
+		});
+		expect(result.disabled).toBe(false);
+	});
+
+	it('should coerce valid enum value from environment variables', () => {
+		process.env.CONFIG_environment = 'production';
+		const result = load({
+			path: '',
+			schema: z.object({
+				environment: z.enum(['development', 'staging', 'production']),
+			}),
+		});
+		expect(result.environment).toBe('production');
+	});
+
+	it('should reject invalid enum value from environment variables', () => {
+		process.env.CONFIG_environment = 'invalid';
+		expect(() =>
+			load({
+				path: '',
+				schema: z.object({
+					environment: z.enum(['development', 'staging', 'production']),
+				}),
+			}),
+		).toThrow();
+	});
+
 	it('should allow for environment overrides of intersect types', () => {
 		process.env.CONFIG_foo = 'foo';
 		process.env.CONFIG_bar = 'bar';
 		const result = load({
 			path: '',
-			schema: Record({
-				foo: String,
-			}).And(
-				Partial({
-					bar: String,
+			schema: z
+				.object({
+					foo: z.string(),
 				})
-			),
+				.merge(
+					z
+						.object({
+							bar: z.string(),
+						})
+						.partial(),
+				),
 		});
 		expect(result).toMatchObject({
 			foo: 'foo',
 			bar: 'bar',
+		});
+	});
+
+	it('should handle environment overrides with z.intersection', () => {
+		process.env.CONFIG_host = 'localhost';
+		process.env.CONFIG_port = '8080';
+		process.env.CONFIG_debug = 'true';
+		const result = load({
+			path: '',
+			schema: z.intersection(
+				z.object({
+					host: z.string(),
+				}),
+				z.object({
+					port: z.number(),
+					debug: z.boolean(),
+				}),
+			),
+		});
+		expect(result).toMatchObject({
+			host: 'localhost',
+			port: 8080,
+			debug: true,
 		});
 	});
 
@@ -257,10 +352,10 @@ describe('getConfig', () => {
 		const result = load({
 			path: '',
 			schema: EnumRecord(
-				Union(Literal('US'), Literal('CA')),
-				Record({
-					foo: String,
-				})
+				z.enum(['US', 'CA']),
+				z.object({
+					foo: z.string(),
+				}),
 			),
 		});
 		expect(result).toMatchObject({
@@ -284,7 +379,7 @@ describe('getConfig', () => {
 					US: { url: 'https://site.us.dev' },
 					CA: { url: 'https://site.ca.dev' },
 				},
-			})
+			}),
 		);
 	});
 
@@ -304,7 +399,7 @@ describe('getConfig', () => {
 					US: { url: 'https://site.us.dev' },
 					CA: { url: 'https://site.ca.dev' },
 				},
-			})
+			}),
 		);
 	});
 
@@ -324,7 +419,7 @@ describe('getConfig', () => {
 					US: { url: 'https://site.us.dev.json' },
 					CA: { url: 'https://site.ca.dev.json' },
 				},
-			})
+			}),
 		);
 	});
 
@@ -344,7 +439,7 @@ describe('getConfig', () => {
 			load({
 				path: path.join(__dirname, 'fixtures', 'config', 'invalid-config'),
 				schema: spec,
-			})
+			}),
 		).toThrow();
 	});
 
@@ -353,7 +448,7 @@ describe('getConfig', () => {
 			load({
 				path: path.join(__dirname, 'fixtures', 'config', 'invalid-config'),
 				schema: spec,
-			})
+			}),
 		).toThrow();
 	});
 
@@ -363,7 +458,7 @@ describe('getConfig', () => {
 				path: path.join(__dirname, 'fixtures', 'config', 'invalid-parse'),
 				format: 'json',
 				schema: spec,
-			})
+			}),
 		).toThrow(/error.*parsing/i);
 	});
 
@@ -373,7 +468,7 @@ describe('getConfig', () => {
 				path: path.join(__dirname, 'fixtures', 'config', 'invalid-parse'),
 				format: 'json',
 				schema: spec,
-			})
+			}),
 		).toThrow(/error.*parsing/i);
 	});
 
@@ -382,8 +477,8 @@ describe('getConfig', () => {
 
 		const result = load({
 			path: '',
-			schema: Record({
-				nameMatch: InstanceOf(RegExp),
+			schema: z.object({
+				nameMatch: z.regexp(),
 			}),
 			defaults: {
 				nameMatch: /asdf/,
@@ -394,6 +489,53 @@ describe('getConfig', () => {
 		expect(result.nameMatch.test('foo-bar')).toBeTruthy();
 	});
 
+	it('should reject invalid regex patterns from environment variables', () => {
+		process.env.CONFIG_pattern = '[invalid';
+
+		// Invalid regex pattern should fail validation
+		expect(() =>
+			load({
+				path: '',
+				schema: z.object({
+					pattern: z.regexp(),
+				}),
+			}),
+		).toThrow();
+	});
+
+	it('should coerce URL env values', () => {
+		process.env.CONFIG_apiEndpoint = 'https://api.example.com/v1';
+
+		const result = load({
+			path: '',
+			schema: z.object({
+				apiEndpoint: z.url(),
+			}),
+			defaults: {
+				apiEndpoint: new URL('https://default.com'),
+			},
+		});
+
+		expect(result.apiEndpoint).toBeInstanceOf(URL);
+		expect(result.apiEndpoint.hostname).toBe('api.example.com');
+		expect(result.apiEndpoint.pathname).toBe('/v1');
+		expect(result.apiEndpoint.protocol).toBe('https:');
+	});
+
+	it('should reject invalid URL strings from environment variables', () => {
+		process.env.CONFIG_endpoint = 'not a valid url';
+
+		// Invalid URL should fail validation
+		expect(() =>
+			load({
+				path: '',
+				schema: z.object({
+					endpoint: z.url(),
+				}),
+			}),
+		).toThrow();
+	});
+
 	it('should support env array values', () => {
 		process.env.CONFIG_arrayValue = 'joe,smith';
 
@@ -401,14 +543,14 @@ describe('getConfig', () => {
 			path: '',
 			format: 'json',
 			sources: ['ENV'],
-			schema: Record({
-				arrayValue: Array(String),
+			schema: z.object({
+				arrayValue: z.array(z.string()),
 			}),
 		});
 		expect(result).toMatchObject<typeof result>(
 			expect.objectContaining({
 				arrayValue: ['joe', 'smith'],
-			})
+			}),
 		);
 	});
 
@@ -467,7 +609,7 @@ describe('getConfig', () => {
 					US: { url: 'foo-us' },
 					CA: { url: 'foo-ca' },
 				},
-			})
+			}),
 		);
 	});
 
@@ -493,7 +635,7 @@ describe('getConfig', () => {
 					US: { url: 'https://site.us.dev' },
 					CA: { url: 'https://site.ca.dev' },
 				},
-			})
+			}),
 		);
 	});
 
@@ -518,7 +660,7 @@ describe('getConfig', () => {
 				database: {
 					host: 'database.server.json5',
 				},
-			})
+			}),
 		);
 	});
 });

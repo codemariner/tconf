@@ -1,10 +1,15 @@
-import { Number, Record } from 'runtypes';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
 
-import { initialize } from '../../../../src';
+import { z } from '../../../../src/zod.js';
+import { initialize } from '../../../../src/index.js';
 
-const globalSchema = Record({
-	api: Record({
-		port: Number,
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+const globalSchema = z.object({
+	api: z.object({
+		port: z.number(),
 	}),
 });
 
