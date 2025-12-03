@@ -45,14 +45,15 @@ jobs:
         run: |
           VERSION=${{ steps.version.outputs.VERSION }}
           # Extract section using Python for reliable regex matching
-          python3 -c "
+          cat > extract_notes.py << 'PYTHON_EOF'
 import re
 import sys
+import os
 
 with open('CHANGELOG.md', 'r') as f:
     content = f.read()
 
-version = '$VERSION'
+version = os.environ['VERSION']
 pattern = r'^## \[' + re.escape(version) + r'\].*?\n(.*?)(?=^## \[|\Z)'
 match = re.search(pattern, content, re.MULTILINE | re.DOTALL)
 
@@ -62,7 +63,9 @@ if match:
 else:
     print('Release notes for version ' + version + ' not found in CHANGELOG.md')
     sys.exit(1)
-" > release_notes.md
+PYTHON_EOF
+
+          python3 extract_notes.py > release_notes.md
 
           # Set output using the file
           {
