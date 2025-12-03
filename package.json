@@ -1,6 +1,6 @@
 {
 	"name": "tconf",
-	"version": "4.0.0",
+	"version": "4.1.0",
 	"description": "Heirarchical configuration with environment variable coercion and type validation.",
 	"author": "Scott Sayles",
 	"type": "module",
