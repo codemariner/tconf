@@ -44,11 +44,25 @@ jobs:
         id: changelog
         run: |
           VERSION=${{ steps.version.outputs.VERSION }}
-          # Extract section between current version and next version header
-          NOTES=$(awk "/## \[$VERSION\]/,/## \[/{if(/## \[/ && !/## \[$VERSION\]/)exit;print}" CHANGELOG.md | sed '1d')
+          # Extract section using Python for reliable regex matching
+          python3 -c "
+import re
+import sys
 
-          # Write to file to handle multiline content properly
-          echo "$NOTES" > release_notes.md
+with open('CHANGELOG.md', 'r') as f:
+    content = f.read()
+
+version = '$VERSION'
+pattern = r'^## \[' + re.escape(version) + r'\].*?\n(.*?)(?=^## \[|\Z)'
+match = re.search(pattern, content, re.MULTILINE | re.DOTALL)
+
+if match:
+    notes = match.group(1).strip()
+    print(notes)
+else:
+    print('Release notes for version ' + version + ' not found in CHANGELOG.md')
+    sys.exit(1)
+" > release_notes.md
 
           # Set output using the file
           {
