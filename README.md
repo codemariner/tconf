@@ -160,7 +160,27 @@ const apiDebug = API_DEBUG === 'true';      // Manual coercion
 ```
 
 **With tconf:**
+```yaml
+# config/default.yaml
+database:
+  host: ${DB_HOST:localhost}
+  user: ${DB_USER:postgres}
+  password: ${DB_PASSWORD:password}
+```
+
 ```typescript
+// src/config.ts
+import { initialize } from 'tconf'
+import * as z from 'tconf/zod'
+
+const Config = z.object({
+  database: z.object({
+    host: z.string(),
+    user: z.string(),
+    password: z.string(),
+  })
+})
+const tconf = initialize({ path: '../config', schema: Config })
 const config = tconf.get();
 // Hierarchical, typed, validated, and coerced automatically
 ```

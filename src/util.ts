@@ -31,23 +31,19 @@ function overwriteMerge<T>(_destinationArray: T[], sourceArray: T[]): T[] {
  * These should be treated as atomic values and replaced, not merged.
  */
 function isMergeableObject(value: any): boolean {
-	// Don't merge special object types - treat them as atomic values
 	if (value instanceof Date || value instanceof RegExp || value instanceof URL) {
 		return false;
 	}
 
-	// Check if it's an object at all
 	const isNonNullObject = value !== null && typeof value === 'object';
 	if (!isNonNullObject) {
 		return false;
 	}
 
-	// Arrays are handled separately by arrayMerge option, but should still be considered mergeable
 	if (Array.isArray(value)) {
 		return true;
 	}
 
-	// For objects, check if they're plain objects (not class instances)
 	const proto = Object.getPrototypeOf(value);
 	return proto === null || proto === Object.prototype;
 }

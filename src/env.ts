@@ -20,7 +20,6 @@ export interface EnvOpts {
 
 /**
  * Traverses a zod schema to find the type definition for a given key path.
- * This is the zod equivalent of the runtypes reflection API.
  */
 function getValueType(
 	keyPath: string[],
@@ -41,10 +40,7 @@ function getValueType(
 		current = (current as any)._def.innerType || (current as any)._def.type;
 	}
 
-	// DON'T unwrap effects here - coerce() needs to see the ZodEffects wrapper
-	// to properly handle instanceof checks and other refinements
-
-	// Handle intersections (zod uses ZodIntersection)
+	// handle intersections
 	if (current instanceof z.ZodIntersection) {
 		// Try left side first, then right side
 		const leftType = getValueType(keyPath, (current as any)._def.left);
@@ -59,10 +55,9 @@ function getValueType(
 		return current;
 	}
 
-	// Traverse into object schema
 	if (current instanceof z.ZodObject) {
 		const [prop, ...remaining] = keyPath;
-		const { shape } = (current as any)._def; // V4: shape is a property, not a function
+		const { shape } = (current as any)._def;
 		const fieldSchema = shape[prop];
 
 		if (!fieldSchema) {
@@ -97,16 +92,14 @@ function coerce(envVar: string, value: string, valueType: z.ZodTypeAny | undefin
 		unwrapped = (unwrapped as any)._def.innerType || (unwrapped as any)._def.type;
 	}
 
-	// Handle transforms
-	// V4 renamed ZodEffects to ZodTransform
+	// handle transforms
+	// v4 renamed ZodEffects to ZodTransform
 	if (unwrapped instanceof z.ZodTransform) {
 		const baseSchema = (unwrapped as any)._def.schema;
-		// Unwrap transforms
 		unwrapped = baseSchema;
 	}
 
-	// Handle RegExp - custom tconf extension (z.regexp())
-	// Check if schema has our RegExp brand marker
+	// custom tconf extension (z.regexp()) using a brand marker
 	if ((unwrapped as any)[REGEXP_BRAND] === true) {
 		try {
 			return new RegExp(value);
@@ -116,8 +109,7 @@ function coerce(envVar: string, value: string, valueType: z.ZodTypeAny | undefin
 		}
 	}
 
-	// Handle URL - custom tconf extension (z.url())
-	// Check if schema has our URL brand marker
+	// custom tconf extension (z.url())
 	if ((unwrapped as any)[URL_BRAND] === true) {
 		try {
 			return new URL(value);
@@ -127,13 +119,11 @@ function coerce(envVar: string, value: string, valueType: z.ZodTypeAny | undefin
 		}
 	}
 
-	// Handle literal types
 	if (unwrapped instanceof z.ZodLiteral) {
-		// V4 uses _def.values (array), V3 used _def.value (single value)
+		// v4 uses _def.values (array), v3 used _def.value (single value)
 		const literalValues = (unwrapped as any)._def.values || [(unwrapped as any)._def.value];
 		const literalValue = literalValues[0];
 
-		// Try coercing to same type as literal
 		if (typeof literalValue === 'string' && value === literalValue) {
 			return value;
 		}
@@ -149,7 +139,6 @@ function coerce(envVar: string, value: string, valueType: z.ZodTypeAny | undefin
 		return undefined;
 	}
 
-	// Handle union types - try each alternative
 	if (unwrapped instanceof z.ZodUnion) {
 		const { options } = (unwrapped as any)._def;
 		for (const option of options) {
@@ -162,7 +151,6 @@ function coerce(envVar: string, value: string, valueType: z.ZodTypeAny | undefin
 		return undefined;
 	}
 
-	// Handle enum types
 	if (unwrapped instanceof z.ZodEnum) {
 		// V4: enum values are in .options property
 		const enumValues = (unwrapped as any).options;
@@ -173,7 +161,6 @@ function coerce(envVar: string, value: string, valueType: z.ZodTypeAny | undefin
 		return undefined;
 	}
 
-	// Handle array types - split on comma and coerce each element
 	if (unwrapped instanceof z.ZodArray) {
 		const elementType = (unwrapped as any)._def.type;
 		return value
@@ -182,13 +169,11 @@ function coerce(envVar: string, value: string, valueType: z.ZodTypeAny | undefin
 			.filter((v) => v !== undefined);
 	}
 
-	// Handle primitive types with zod's built-in coercion where possible
 	if (unwrapped instanceof z.ZodString) {
 		return value;
 	}
 
 	if (unwrapped instanceof z.ZodNumber) {
-		// Use zod's built-in coerce for consistency
 		try {
 			return z.coerce.number().parse(value);
 		} catch (error) {
@@ -198,7 +183,6 @@ function coerce(envVar: string, value: string, valueType: z.ZodTypeAny | undefin
 	}
 
 	if (unwrapped instanceof z.ZodBoolean) {
-		// Use zod's built-in coerce
 		try {
 			return z.coerce.boolean().parse(value);
 		} catch (error) {
@@ -207,7 +191,6 @@ function coerce(envVar: string, value: string, valueType: z.ZodTypeAny | undefin
 		}
 	}
 
-	// Handle Date - custom coercion (zod.coerce.date() might be too lenient)
 	if (unwrapped instanceof z.ZodDate) {
 		const date = new Date(value);
 		if (isNaN(date.getTime())) {
@@ -217,10 +200,10 @@ function coerce(envVar: string, value: string, valueType: z.ZodTypeAny | undefin
 		return date;
 	}
 
-	// Note: z.instanceof(RegExp) and z.instanceof(Date) are handled by the ZodCustom
+	// NOTE: z.instanceof(RegExp) and z.instanceof(Date) are handled by the ZodCustom
 	// path earlier in this function (Zod v4 creates ZodCustom for instanceof checks)
 
-	// Default: return string if we can't determine type
+	// return string if we can't determine type
 	logEnv(
 		`Unknown type for env var "${envVar}" (${(unwrapped as any)._def?.typeName || 'unknown'}), returning as string`,
 	);

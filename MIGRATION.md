@@ -15,7 +15,7 @@ The schema validation library has changed from runtypes to zod.
 
 ### 3. Minimum Node.js Version
 - **Old**: Node.js 16+
-- **New**: Node.js 20+
+- **New**: Node.js 18+
 
 ## Migration Steps
 
@@ -328,35 +328,6 @@ If you were using Jest, you may want to consider migrating to Vitest (though Jes
 }
 ```
 
-## Common Migration Issues
-
-### Issue 1: "Cannot use import statement outside a module"
-
-**Solution:** Add `"type": "module"` to package.json or use `.mjs` file extensions.
-
-### Issue 2: "Module not found" errors with relative imports
-
-**Solution:** Add `.js` extensions to your imports:
-
-```typescript
-// Old
-import { Config } from './config';
-
-// New
-import { Config } from './config.js';
-```
-
-### Issue 3: Runtypes validation errors after migration
-
-**Solution:** Make sure you've updated all schemas. Check that:
-- `Record({})` → `z.object({})`
-- `Optional(Type)` → `Type.optional()`
-- `Static<typeof T>` → `z.infer<T>`
-
-### Issue 4: Type inference not working
-
-**Solution:** Ensure you're using `z.infer<typeof Schema>` not `Static<typeof Schema>`
-
 ## Example: Complete Migration
 
 ### Before (v3.x with Runtypes)
@@ -446,13 +417,3 @@ If you encounter issues during migration:
 1. Check the [documentation](./DOC.md)
 2. Review the [test files](./test) for examples
 3. Open an issue on [GitHub](https://github.com/codemariner/tconf/issues)
-
-## Rollback
-
-If you need to rollback to v3.x:
-
-```bash
-npm install tconf@^3.0.0
-```
-
-Note that v3.x will continue to receive critical bug fixes but new features will only be added to v4.x.

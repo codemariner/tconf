@@ -1,5 +1,5 @@
 /**
- * Re-export Zod with tconf extensions
+ * re-export zod with tconf extensions.
  * Users should import from 'tconf/zod' to get the version tconf expects
  * plus custom schema types like z.regexp() and z.url()
  */
@@ -8,21 +8,20 @@ import * as zodNamespace from 'zod';
 
 import { regexp, url } from './zod-extensions.js';
 
-// Re-export the z object from zod
 const { z: zodCore } = zodNamespace;
 
 // Create a Proxy around zodCore that adds/overrides our custom extensions
-// Note: We override Zod's built-in z.url() (which validates strings) with our version (which validates URL objects)
+// NOTE: We override Zod's built-in z.url() (which validates strings) with our version (which validates URL objects)
 export const z = new Proxy(zodCore, {
 	get(target, prop) {
-		// Intercept our custom extensions
+		// our custom extensions
 		if (prop === 'regexp') {
 			return regexp;
 		}
 		if (prop === 'url') {
 			return url;
 		}
-		// Everything else delegates to zodCore
+		// everything else delegates to zodCore
 		return Reflect.get(target, prop);
 	},
 	has(target, prop) {
@@ -33,9 +32,7 @@ export const z = new Proxy(zodCore, {
 	},
 }) as unknown as Omit<typeof zodCore, 'url'> & { regexp: typeof regexp; url: typeof url };
 
-// Re-export all types from zod (but not values, so our proxied 'z' won't be overwritten)
 export type * from 'zod';
 
-// Export our custom types and type helpers
 export { regexp, url } from './zod-extensions.js';
 export type { ZodRegExp, ZodURL } from './zod-extensions.js';
